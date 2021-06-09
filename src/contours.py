@@ -5,9 +5,9 @@ import os
 
 #-- Lecture d'image
 
-#os.system("rm *.png")
+#os.system("del img/BB_21.png")
 print(np.pi)
-img = cv.imread("/home/aissam/Stage/CornHole/img/blue_hole3.jpeg")
+img = cv.imread("/Users/clead/Documents/ING3/Stage/CornHole/Picturehole2.png")
 hsv = cv.cvtColor(img, cv.COLOR_BGR2HSV)
 h,s,v = cv.split(hsv)
 ret_h, th_h = cv.threshold(h,0,255,cv.THRESH_BINARY + cv.THRESH_OTSU)
@@ -36,16 +36,16 @@ resultat=cv.bitwise_and(img, img, mask=th)
 cv.imwrite("im_floodfill.png", im_floodfill)
 cv.imwrite("th.png", th)
 cv.imwrite("resultat.png", resultat)
-contours, hierarchy = cv.findContours(th, cv.RETR_TREE, cv.CHAIN_APPROX_NONE)
+contours, hierarchy = cv.findContours(th, cv.RETR_TREE, cv.CHAIN_APPROX_TC89_L1)
 
 #-- Création de la nouvelle image
 print(len(contours))
 for i in range(len(contours)):
     mask_BB_i = np.zeros((len(th), len(th[0])), np.uint8)
     circularity = 4*np.pi
-    #x,y,w,h   = cv.boundingRect(contours[i])
-    #cv.drawContours(mask_BB_i, contours, i, (255,255,255), -1)
-    #BB_i=cv.bitwise_and(img,img,mask=mask_BB_i)
-    #if h>10 and w>10 and h < 40 and w < 40:
-    #    BB_i=BB_i[y:y+h,x:x+w]
-    #    cv.imwrite("BB_"+str(i)+".png", BB_i)
+    x,y,w,h   = cv.boundingRect(contours[i])
+    cv.drawContours(mask_BB_i, contours, i, (255,255,255), -1)
+    BB_i=cv.bitwise_and(img,img,mask=mask_BB_i)
+    if h>20 and w>20 :
+        BB_i=BB_i[y:y+h,x:x+w]
+        cv.imwrite("BB_"+str(i)+".png", BB_i)

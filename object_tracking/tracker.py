@@ -14,9 +14,9 @@ class EuclideanDistTracker:
 
 
     def distance(self, id1):
-        dx = self.center_points[id1][0]  - 242
-        dy = self.center_points[id1][1] - 372
-        return np.sqrt(dx**2 + dy**2)
+        dx = self.center_points[id1][0]  - 140
+        dy = self.center_points[id1][1] - 120
+        return math.hypot(dx , dy)
 
     def update(self, objects_rect):
         # Objects boxes and ids
@@ -33,12 +33,14 @@ class EuclideanDistTracker:
             for id, pt in self.center_points.items():
                 dist = math.hypot(cx - pt[0], cy - pt[1])
 
-                if dist < 25:
+                if dist < 50:
                     self.center_points[id] = (cx, cy)
-                    if len(self.center_points) > 1 and id > 1:
-                        os.system("clear")
-                        print("Object:{} distance : {} ".format(id,self.distance(id)))
+                    print("objet : {} -- {} x: {} y: {}".format(id,self.distance(id),cx,cy))
                     objects_bbs_ids.append([x, y, w, h, id])
+                   # if len(self.center_points) > 1 and id > 1:
+                       # os.system("clear")
+                        #print("Object:{} distance : {} ".format(id,self.distance(id)))
+                     
                     same_object_detected = True
                     break
 
