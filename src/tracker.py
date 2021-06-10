@@ -20,7 +20,6 @@ class EuclideanDistTracker:
         dy = self.center_points[id1][1] - coord[1]
         return round(math.hypot(dx , dy),4)
 
-
     def update(self, objects_rect,coord):
         # Objects boxes and ids
         objects_bbs_ids = []
@@ -62,7 +61,18 @@ class EuclideanDistTracker:
             new_center_points[object_id] = center
         
         # Update dictionary with IDs not used removed
-        self.center_points = new_center_points.copy()
-        
+        self.center_points = new_center_points.copy()       
         return objects_bbs_ids
         
+
+"""
+    def distance(self, id1):
+        dx = self.center_points[id1][0]  - 140 #video 2
+        dy = self.center_points[id1][1] - 120
+      #  dx = self.center_points[id1][0]  - 125 #video3
+      #  dy = self.center_points[id1][1] - 90
+       # dx = self.center_points[id1][0]  - 130 video 2v2
+       # dy = self.center_points[id1][1] - 110
+        return round(math.hypot(dx , dy),4)
+
+"""
