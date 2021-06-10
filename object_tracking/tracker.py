@@ -14,6 +14,7 @@ class EuclideanDistTracker:
 # (140,120)
 # (145,115)
 # (390,130)
+
     def distance(self, id1):
         dx = self.center_points[id1][0]  - 140
         dy = self.center_points[id1][1] - 120
@@ -58,7 +59,7 @@ class EuclideanDistTracker:
                 self.id_count += 1
 
         # Clean the dictionary by center points to remove IDS not used anymore
-        
+        """
         new_center_points = {}
         for obj_bb_id in objects_bbs_ids:
             _, _, _, _, object_id = obj_bb_id
@@ -67,6 +68,13 @@ class EuclideanDistTracker:
         
         # Update dictionary with IDs not used removed
         self.center_points = new_center_points.copy()
-        
+        """
         return objects_bbs_ids
         
+"""
+    def distance(self, id1, coord):
+        dx = self.center_points[id1][0]  - coord[0]
+        dy = self.center_points[id1][1] - coord[1]
+        return round(math.hypot(dx , dy),4)
+
+"""
