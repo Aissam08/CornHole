@@ -16,6 +16,8 @@ class EuclideanDistTracker:
     def distance(self, id1):
         dx = self.center_points[id1][0]  - 140
         dy = self.center_points[id1][1] - 120
+      #  dx = self.center_points[id1][0]  - 145
+      #  dy = self.center_points[id1][1] - 115
         return round(math.hypot(dx , dy),4)
 
     def update(self, objects_rect):
@@ -43,7 +45,7 @@ class EuclideanDistTracker:
                     if self.distance(id) < 25:
                         print("object : {} is in hole".format(id))
                     else:
-                       # print("object {} : \t distance to hole : {} \t position: ({},{})".format(id,self.distance(id),cx,cy))
+                        print("object {} : \t distance to hole : {} \t position: ({},{})".format(id,self.distance(id),cx,cy))
                         objects_bbs_ids.append([x, y, w, h, id])
                      
                     same_object_detected = True

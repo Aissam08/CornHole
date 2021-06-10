@@ -26,10 +26,12 @@ class Detection():
             area = cv2.contourArea(cnt)
            # print(area)
             if area > 1000    and area < 2530:
-                #print(area)
+                print(area)
+                
                 cv2.drawContours(self.roi, [cnt], -1, (0, 255, 0), 2)
                 x, y, w, h = cv2.boundingRect(cnt)
-                
+                print(    x + w)
+                print(    y + h)
 
                 self.detections.append([x, y, w, h])
         
