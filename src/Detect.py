@@ -86,25 +86,3 @@ class Detection():
             self.object_detection()
             if self.object_tracking() == 0:
                 break
-
-<<<<<<< HEAD:src/Detect.py
-=======
-
-# Create tracker object
-tracker = EuclideanDistTracker()
-
-cap = cv2.VideoCapture("vid/lancer2.mp4")
-D = Detection(cap)
-D.run()
-cap.release()
-cv2.destroyAllWindows()
-
-
-
-"""
-0 : Truc inutile
-1 : Sac noir près du trou
-2 : Sac rouge en haut à gauche
-3/4/5 : Objets immobiles
-"""
->>>>>>> 02dcaa456b4b59386fcf4e175622cade04791b48:object_tracking/Detect.py
