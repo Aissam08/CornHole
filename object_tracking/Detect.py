@@ -68,7 +68,7 @@ tracker = EuclideanDistTracker()
 cap = cv2.VideoCapture("vid/lancer2v2.mov")
 
 # Object detection from Stable camera 100
-object_detector = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold= 40 )
+object_detector = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold= 400)
 
 D = Detection(cap)
 D.run()
