@@ -8,7 +8,8 @@ tracker = EuclideanDistTracker()
 cap = cv2.VideoCapture("vid/lancer.mp4")
 
 # Object detection from Stable camera
-object_detector = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold=5)
+# 100 et 5
+object_detector = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold=10)
 #object_detector = cv2.createBackgroundSubtractorKNN(history=500, dist2Threshold = 400, detectShadows = False)
 
 while True:
