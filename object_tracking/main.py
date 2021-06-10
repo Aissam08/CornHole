@@ -8,9 +8,14 @@ tracker = EuclideanDistTracker()
 cap = cv2.VideoCapture("vid/lancer.mp4")
 
 # Object detection from Stable camera
+<<<<<<< HEAD
 # 100 et 5
 object_detector = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold=10)
 #object_detector = cv2.createBackgroundSubtractorKNN(history=500, dist2Threshold = 400, detectShadows = False)
+=======
+#object_detector = cv2.createBackgroundSubtractorMOG2(history=500, varThreshold=10)
+object_detector = cv2.createBackgroundSubtractorKNN(history=500, dist2Threshold = 400, detectShadows = False)
+>>>>>>> 4577efc8e845c9d95fba17eb47f3f090aabd533b
 
 while True:
     ret, frame = cap.read()
@@ -28,12 +33,12 @@ while True:
         # Calculate area and remove small elements
         area = cv2.contourArea(cnt)
         
-        if area > 600  and area < 3000:
+        if area > 2000  and area < 3000:
         #if area > 100:
             #print(area)
             #cv2.drawContours(roi, [cnt], -1, (0, 255, 0), 2)
+            print(area)
             x, y, w, h = cv2.boundingRect(cnt)
-
 
             detections.append([x, y, w, h])
 
