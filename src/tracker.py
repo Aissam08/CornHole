@@ -10,6 +10,7 @@ class EuclideanDistTracker:
         # Keep the count of the IDs
         # each time a new object id detected, the count will increase by one
         self.id_count = 0
+        self.goal = False
 
 # (140,120)
 # (145,115)
@@ -18,7 +19,7 @@ class EuclideanDistTracker:
     def distance(self, id1, coord):
         dx = self.center_points[id1][0]  - coord[0]
         dy = self.center_points[id1][1] - coord[1]
-        return round(math.hypot(dx , dy),4)
+        return math.hypot(dx , dy)
 
     def update(self, objects_rect,coord):
         # Objects boxes and ids
@@ -27,8 +28,8 @@ class EuclideanDistTracker:
         # Get center point of new object
         for rect in objects_rect:
             x, y, w, h = rect
-            cx = x #(x + x + w) // 2
-            cy = y #(y + y + h) // 2
+            cx = x + w/2
+            cy = y + h/ 2
 
             # Find out if that object was detected already
             same_object_detected = False
@@ -39,9 +40,10 @@ class EuclideanDistTracker:
 
                 if dist > 10 and dist < 800:
                     self.center_points[id] = (cx, cy)
+                    #print("id:{} \t dist:{} ".format(id,self.distance(id,coord)))
                     if self.distance(id,coord) < coord[2]/2:
                         print("object fallen")
-  
+                        self.goal = True
                     same_object_detected = True
                     break
 
