@@ -7,7 +7,7 @@ class Detection():
     def __init__(self, clip):
         print("Starting detection. . .")
         self.tracker = EuclideanDistTracker()
-        self.object_detector = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold=150)
+        self.object_detector = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold=40)
         self.clip = clip
         self.frame = None
         self.detected_hole = False
@@ -50,7 +50,11 @@ class Detection():
             if area > 285    and area < 2600:
                 cv2.drawContours(self.frame, [cnt], -1, (0, 255, 0), 2)
                 x, y, w, h = cv2.boundingRect(cnt)
+                # Condition si la moyenne de couleur est > 
                 self.detections.append([x, y, w, h])
+                cv2.drawContours(mask, cnt, -1, 255, -1)
+                mean = cv2.mean(self.frame, mask=mask)
+               # print(mean)
         
 
     def object_tracking(self):
@@ -61,9 +65,10 @@ class Detection():
             cv2.rectangle(self.frame, (x, y), (x + w, y + h), (0, 255, 0), 3)
 
         if self.tracker.goal:
-            cv2.putText(self.frame, "GOAL !", (0 , round(self.frame.shape[1]) ), cv2.FONT_HERSHEY_PLAIN, 6, (0, 0, 255), 10)
+            cv2.putText(self.frame, "GOAL !", (0 , round(self.frame.shape[1]/2) ), cv2.FONT_HERSHEY_PLAIN, 6, (0, 0, 255), 10)
             self.tracker.goal = False
 
+        cv2.putText(self.frame, "equipe blanche", (0 , round(self.frame.shape[1]/2) ), cv2.FONT_HERSHEY_PLAIN, 3, (255, 255, 255), 5 )
         cv2.imshow("Frame", self.frame)
         #cv2.imshow("Frame", frame)
         #cv2.imshow("Mask", mask)
