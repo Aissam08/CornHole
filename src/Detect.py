@@ -7,7 +7,7 @@ class Detection():
     def __init__(self, clip):
         print("Starting detection. . .")
         self.tracker = EuclideanDistTracker()
-        self.object_detector = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold=100)
+        self.object_detector = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold=150)
         self.clip = clip
         self.frame = None
         self.detected_hole = False

@@ -38,11 +38,11 @@ class EuclideanDistTracker:
                 dist = math.hypot(cx - pt[0], cy - pt[1])
                 #print(dist)
 
-                if dist > 10 and dist < 800:
+                if dist > 11 and dist < 800:
                     self.center_points[id] = (cx, cy)
                     #print("id:{} \t dist:{} ".format(id,self.distance(id,coord)))
-                    if self.distance(id,coord) < coord[2]/2:
-                        print("object fallen")
+                    if self.distance(id,coord) < coord[2]:
+                        #print("object fallen")
                         self.goal = True
                     same_object_detected = True
                     break
