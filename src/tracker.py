@@ -26,8 +26,11 @@ class EuclideanDistTracker:
         objects_bbs_ids = []
         #if len(objects_rect) > 0:
         # Get center point of new object
+       
+        
         for rect in objects_rect:
-            x, y, w, h = rect
+            
+            x, y, w, h= rect
             cx = x + w/2
             cy = y + h/ 2
 

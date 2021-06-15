@@ -1,19 +1,24 @@
 from tracker import *
 import time
 import cv2
+from Audio import *
 
 class Detection():
     """docstring for Detection"""
     def __init__(self, clip):
         print("Starting detection. . .")
         self.tracker = EuclideanDistTracker()
-        self.object_detector = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold=40)
+        self.object_detector = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold=150) #150
         self.clip = clip
         self.frame = None
         self.detected_hole = False
         self.detections = []
         self.contours = []
         self.hole_coord = []
+        self.c = 2
+        self.score_White = 0
+        self.score_Black = 0
+        self.DisplayGoal = 0
 
     def object_detection(self):
         ret, self.frame = self.clip.read()
@@ -50,25 +55,52 @@ class Detection():
             if area > 285    and area < 2600:
                 cv2.drawContours(self.frame, [cnt], -1, (0, 255, 0), 2)
                 x, y, w, h = cv2.boundingRect(cnt)
-                # Condition si la moyenne de couleur est > 
-                self.detections.append([x, y, w, h])
                 cv2.drawContours(mask, cnt, -1, 255, -1)
-                mean = cv2.mean(self.frame, mask=mask)
+                r,b,v,_ = cv2.mean(self.frame, mask=mask)
+                mean = (r+b+v)/3
+                if mean< 100:  # If it's black team
+                     self.c = 1
+                     self.detections.append([x, y, w, h])
+                else: # If it's white team
+                    self.c = 0
+                    self.detections.append([x, y, w, h])
+                    
+
+                
                # print(mean)
         
 
     def object_tracking(self):
         boxes_ids = self.tracker.update(self.detections, self.hole_coord)
         for box_id in boxes_ids:
-            x, y, w, h, id = box_id
+            x, y, w, h,   id = box_id
             #cv2.putText(self.frame, str(id), (x, y - 15), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)
             cv2.rectangle(self.frame, (x, y), (x + w, y + h), (0, 255, 0), 3)
 
         if self.tracker.goal:
             cv2.putText(self.frame, "GOAL !", (0 , round(self.frame.shape[1]/2) ), cv2.FONT_HERSHEY_PLAIN, 6, (0, 0, 255), 10)
+            assistant_speaks("Do you want to see the video in slow motion ?")
+            answer = get_audio()
+            if answer == "yes":
+                print("Yes")
+            else:
+                print("no")
+            self.DisplayGoal = 15
             self.tracker.goal = False
+            if self.c == 0:
+                print("blanc")
+                self.score_White = self.score_White + 1
+            if self.c == 1:
+                print("noir")
+                self.score_Black = self.score_Black + 1
+        
+        if self.DisplayGoal > 0:
+            cv2.putText(self.frame, "GOAL !", (0 , round(self.frame.shape[1]/2) ), cv2.FONT_HERSHEY_PLAIN, 6, (0, 0, 255), 10)
+            self.DisplayGoal = self.DisplayGoal - 1
 
-        cv2.putText(self.frame, "equipe blanche", (0 , round(self.frame.shape[1]/2) ), cv2.FONT_HERSHEY_PLAIN, 3, (255, 255, 255), 5 )
+        cv2.putText(self.frame, "Score: ", (0 , round(self.frame.shape[1]*1.1) ), cv2.FONT_HERSHEY_PLAIN, 3, (0, 0, 255), 3 )
+        cv2.putText(self.frame, "White Team: {}".format(self.score_White), (round(self.frame.shape[0]/2.50), round(self.frame.shape[1]*1.2) ), cv2.FONT_HERSHEY_PLAIN, 1.5, (255, 255, 255), 2 )
+        cv2.putText(self.frame, "Black Team: {}".format(self.score_Black), (0 , round(self.frame.shape[1]*1.2) ), cv2.FONT_HERSHEY_PLAIN, 1.5, (255, 255, 255), 2 )
         cv2.imshow("Frame", self.frame)
         #cv2.imshow("Frame", frame)
         #cv2.imshow("Mask", mask)
