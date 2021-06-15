@@ -13,7 +13,7 @@ def assistant_speaks(output):
     # num to rename every audio file 
     # with different name to remove ambiguity
     num += 1
-    print("PerSon : ", output)
+    #print("PerSon : ", output)
   
     toSpeak = gTTS(text = output, lang ='en', slow = False)
     # saving the audio file given by google text to speech
@@ -35,16 +35,14 @@ def get_audio():
         print("Speak...")
           
         # recording the audio using speech recognition
-        audio = rObject.listen(source, phrase_time_limit = 5) 
+        audio = rObject.listen(source, phrase_time_limit = 2) 
     print("Stop.") # limit 5 secs
   
     try:
-  
         text = rObject.recognize_google(audio, language ='en-US')
         print("You : ", text)
         return text
   
     except:
-  
        # assistant_speaks("Could not understand your audio, PLease try again !")
         return ""
