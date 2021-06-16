@@ -43,11 +43,13 @@ class EuclideanDistTracker:
 
                 if dist > 30 and dist < 800:
                     self.center_points[id] = (cx, cy)
-                    #print(dist)
+                    #print(self.distance(id,coord))
                     #print("id:{} \t x: {} y:{}".format(id,cx,cy))
                     if self.distance(id,coord) < coord[2] and id not in self.list_goals:
                         self.list_goals.append(id)
-                        #print(self.list_goals)                  
+                        #print(self.distance(id,coord))
+                        #print(self.list_goals)
+                        #print(id)                
                         # print("id:{} \t dist:{} ".format(id,self.distance(id,coord)))
                         self.goal = True
                     same_object_detected = True

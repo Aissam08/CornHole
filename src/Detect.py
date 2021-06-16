@@ -8,7 +8,7 @@ class Detection():
 	def __init__(self, clip):
 		print("Starting detection. . .")
 		self.tracker = EuclideanDistTracker()
-		self.object_detector = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold=800) #150
+		self.object_detector = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold=800) #800
 		self.clip = clip
 		self.frame = None
 		self.out = None
@@ -23,7 +23,8 @@ class Detection():
 		self.cpt_frame = 0
 		self.display_slow_motion = False
 		self.list_frame = []
-		#self.save()
+		self.goal_index = 0
+		self.save()
 
 	def save(self):
 		width = int(self.clip.get(cv2.CAP_PROP_FRAME_WIDTH) + 0.5)
@@ -36,16 +37,12 @@ class Detection():
 		ret, self.frame = self.clip.read()
 		self.cpt_frame += 1
 
-		if len(self.list_frame) < 100:
-			self.list_frame.append(self.frame)
-		else:
-			self.list_frame = []
+		self.list_frame.append(self.frame)
 
-		#print(len(self.list_frame))
 		self.frame = cv2.rotate(self.frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
 		try:
 			height, width, _ = self.frame.shape
-			#self.out.write(self.frame)
+			self.out.write(self.frame)
 		except AttributeError:
 			print("Ending detection. . .")
 			exit()
@@ -72,23 +69,25 @@ class Detection():
 		for cnt in contours:
 			# Calculate area and remove small elements
 			area = cv2.contourArea(cnt)
-			#if area > 50:
-			#print(area)
+			#if area > 20:
+			#	print(area)
 			if area > 100 and area < 2600:
 				cv2.drawContours(self.frame, [cnt], -1, (0, 255, 0), 2)
 				x, y, w, h = cv2.boundingRect(cnt)
 				#print(area)
 				cv2.drawContours(mask, cnt, -1, 255, -1)
 				r,b,v,_ = cv2.mean(self.frame, mask=mask)
-				mean = (r+b+v)/3
+				#print("Couleur: (r = {}, b = {}, v = {})".format(r,b,v))
+				mean = (r+v)/2
+				#print("Vert : {}".format(v))
                 
-				if mean < 100:  # If it's black team
+				if v < 40:  # If it's black team
 					 self.c = 1
 					 self.detections.append([x, y, w, h])
 				else: # If it's white team
 					self.c = 0
 					self.detections.append([x, y, w, h])
-			#	print(mean)
+				#print(mean)
                 
 
 				
@@ -113,11 +112,11 @@ class Detection():
 			# else:
 			# 	print("no")
 
-            
+			# self.goal_index = self.cpt_frame
+			# #self.show_goal()            
 			self.DisplayGoal = 15
 			self.tracker.goal = False
             
-
 			if self.c == 0:
 			#	print("blanc")
 				self.score_White = self.score_White + 1
@@ -141,8 +140,9 @@ class Detection():
         
 
 
-		key = cv2.waitKey(30) #60
+		key = cv2.waitKey(40) #60
 		if key == 27:
+			self.out.release()
 			return 0
 		else:
 			return 1
@@ -157,19 +157,12 @@ class Detection():
 		return x,y,r
 	
 	def show_goal(self):
-		cap = self.clip
-		print(self.cpt_frame)
-		cap.set(1,self.cpt_frame - 50)
-		_, frame = cap.read()
-		i = 0
-		while True and i < 50:
-			i += 1
-			_, frame = cap.read()
+		for frame in self.list_frame[self.goal_index - 30:self.goal_index]:
 			cv2.imshow('Ralenti', frame)
 			key = cv2.waitKey(120)
 			if key == 27:
 				break    
-		cv2.destroyAllWindows()
+		cv2.destroyAllWindows()	
 
 	def run(self):
 		while True:
