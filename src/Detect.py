@@ -41,7 +41,7 @@ class Detection():
 		else:
 			self.list_frame = []
 
-		print(len(self.list_frame))
+		#print(len(self.list_frame))
 		self.frame = cv2.rotate(self.frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
 		try:
 			height, width, _ = self.frame.shape
@@ -73,8 +73,8 @@ class Detection():
 			# Calculate area and remove small elements
 			area = cv2.contourArea(cnt)
 			#if area > 50:
-			#	print(area)
-			if area > 50 and area < 2600:
+			print(area)
+			if area > 290 and area < 2600:
 				cv2.drawContours(self.frame, [cnt], -1, (0, 255, 0), 2)
 				x, y, w, h = cv2.boundingRect(cnt)
 				#print(area)
@@ -101,6 +101,7 @@ class Detection():
 
 		if self.tracker.goal:
 			cv2.putText(self.frame, "GOAL !", (0 , round(self.frame.shape[1]/2) ), cv2.FONT_HERSHEY_PLAIN, 6, (0, 0, 255), 10)
+            
 			# assistant_speaks("Do you want to see your goal in slow motion ?")
 			# answer = get_audio()
 
@@ -110,13 +111,14 @@ class Detection():
 			# else:
 			# 	print("no")
 
+            
 			self.DisplayGoal = 15
 			self.tracker.goal = False
 			if self.c == 0:
-				#print("blanc")
+			#	print("blanc")
 				self.score_White = self.score_White + 1
 			if self.c == 1:
-				#print("noir")
+			#	print("noir")
 				self.score_Black = self.score_Black + 1
 		
 		if self.DisplayGoal > 0:
@@ -131,7 +133,7 @@ class Detection():
 		cv2.imshow("Frame", self.frame)
 
 
-		key = cv2.waitKey(60)
+		key = cv2.waitKey(30) #60
 		if key == 27:
 			return 0
 		else:

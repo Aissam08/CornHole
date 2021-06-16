@@ -41,7 +41,7 @@ class EuclideanDistTracker:
                 dist = math.hypot(cx - pt[0], cy - pt[1])
                 #print(dist)
 
-                if dist > 32 and dist < 800:
+                if dist > 30 and dist < 800:
                     self.center_points[id] = (cx, cy)
                     #print("id:{} \t x: {} y:{}".format(id,cx,cy))
                     if self.distance(id,coord) < coord[2] and id not in self.list_goals:
@@ -50,8 +50,12 @@ class EuclideanDistTracker:
                         # print("id:{} \t dist:{} ".format(id,self.distance(id,coord)))
                         self.goal = True
                     same_object_detected = True
-                    break
-                # elif dist < 11 :
+                    # break
+               # if dist < 8 :
+                        # print("fixe")
+                        # print(x)
+                        # print(y)
+                    
                 #     same_object_detected = True
                 #     #print("Objet fixe : {}".format(id))
 
