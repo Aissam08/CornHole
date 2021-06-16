@@ -11,6 +11,7 @@ class EuclideanDistTracker:
         # each time a new object id detected, the count will increase by one
         self.id_count = 0
         self.goal = False
+        self.list_goals = []
 
 # (140,120)
 # (145,115)
@@ -36,19 +37,24 @@ class EuclideanDistTracker:
 
             # Find out if that object was detected already
             same_object_detected = False
-
             for id, pt in self.center_points.items():
                 dist = math.hypot(cx - pt[0], cy - pt[1])
                 #print(dist)
 
-                if dist > 11 and dist < 800:
+                if dist > 32 and dist < 800:
                     self.center_points[id] = (cx, cy)
-                    #print("id:{} \t dist:{} ".format(id,self.distance(id,coord)))
-                    if self.distance(id,coord) < coord[2]:
-                        #print("object fallen")
+                    #print("id:{} \t x: {} y:{}".format(id,cx,cy))
+                    if self.distance(id,coord) < coord[2] and id not in self.list_goals:
+                        self.list_goals.append(id)
+                        #print(self.list_goals)                  
+                        # print("id:{} \t dist:{} ".format(id,self.distance(id,coord)))
                         self.goal = True
                     same_object_detected = True
                     break
+                # elif dist < 11 :
+                #     same_object_detected = True
+                #     #print("Objet fixe : {}".format(id))
+
 
             # New object is detected we assign the ID to that object
             if same_object_detected is False:
@@ -58,7 +64,7 @@ class EuclideanDistTracker:
                 self.id_count += 1
 
         # Clean the dictionary by center points to remove IDS not used anymore
-        
+        """
         new_center_points = {}
         for obj_bb_id in objects_bbs_ids:
             _, _, _, _, object_id = obj_bb_id
@@ -67,6 +73,7 @@ class EuclideanDistTracker:
         
         # Update dictionary with IDs not used removed
         self.center_points = new_center_points.copy()       
+        """
         return objects_bbs_ids
         
 

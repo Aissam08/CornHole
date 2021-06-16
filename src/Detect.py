@@ -22,6 +22,7 @@ class Detection():
 		self.DisplayGoal = 0
 		self.cpt_frame = 0
 		self.display_slow_motion = False
+		self.list_frame = []
 		#self.save()
 
 	def save(self):
@@ -33,8 +34,14 @@ class Detection():
 
 	def object_detection(self):
 		ret, self.frame = self.clip.read()
-		self.cpt_frame += 1 
+		self.cpt_frame += 1
 
+		if len(self.list_frame) < 100:
+			self.list_frame.append(self.frame)
+		else:
+			self.list_frame = []
+
+		print(len(self.list_frame))
 		self.frame = cv2.rotate(self.frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
 		try:
 			height, width, _ = self.frame.shape
@@ -56,22 +63,25 @@ class Detection():
 
 		# 1. Object Detection
 		mask = self.object_detector.apply(self.frame)
-		_, mask = cv2.threshold(mask, 254, 255, cv2.THRESH_BINARY)
+		_, mask = cv2.threshold(mask, 200, 255, cv2.THRESH_BINARY)
 		#cv2.imshow("Mask", mask)
 		contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+		#print(len(contours))
 		self.detections = []
 
 		for cnt in contours:
 			# Calculate area and remove small elements
 			area = cv2.contourArea(cnt)
-
-			if area > 285    and area < 2600:
+			#if area > 50:
+			#	print(area)
+			if area > 50 and area < 2600:
 				cv2.drawContours(self.frame, [cnt], -1, (0, 255, 0), 2)
 				x, y, w, h = cv2.boundingRect(cnt)
+				#print(area)
 				cv2.drawContours(mask, cnt, -1, 255, -1)
 				r,b,v,_ = cv2.mean(self.frame, mask=mask)
 				mean = (r+b+v)/3
-				if mean< 100:  # If it's black team
+				if mean < 100:  # If it's black team
 					 self.c = 1
 					 self.detections.append([x, y, w, h])
 				else: # If it's white team
@@ -91,22 +101,22 @@ class Detection():
 
 		if self.tracker.goal:
 			cv2.putText(self.frame, "GOAL !", (0 , round(self.frame.shape[1]/2) ), cv2.FONT_HERSHEY_PLAIN, 6, (0, 0, 255), 10)
-			assistant_speaks("Do you want to see your goal in slow motion ?")
-			answer = get_audio()
+			# assistant_speaks("Do you want to see your goal in slow motion ?")
+			# answer = get_audio()
 
-			if answer == "yes":
-				print("Yes")
-				self.show_goal()
-			else:
-				print("no")
+			# if answer == "yes":
+			# 	print("Yes")
+			# 	self.show_goal()
+			# else:
+			# 	print("no")
 
 			self.DisplayGoal = 15
 			self.tracker.goal = False
 			if self.c == 0:
-				print("blanc")
+				#print("blanc")
 				self.score_White = self.score_White + 1
 			if self.c == 1:
-				print("noir")
+				#print("noir")
 				self.score_Black = self.score_Black + 1
 		
 		if self.DisplayGoal > 0:
@@ -121,7 +131,7 @@ class Detection():
 		cv2.imshow("Frame", self.frame)
 
 
-		key = cv2.waitKey(30)
+		key = cv2.waitKey(60)
 		if key == 27:
 			return 0
 		else:
