@@ -43,6 +43,7 @@ class EuclideanDistTracker:
 
                 if dist > 30 and dist < 800:
                     self.center_points[id] = (cx, cy)
+                    #print(dist)
                     #print("id:{} \t x: {} y:{}".format(id,cx,cy))
                     if self.distance(id,coord) < coord[2] and id not in self.list_goals:
                         self.list_goals.append(id)

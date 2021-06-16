@@ -8,7 +8,7 @@ class Detection():
 	def __init__(self, clip):
 		print("Starting detection. . .")
 		self.tracker = EuclideanDistTracker()
-		self.object_detector = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold=150) #150
+		self.object_detector = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold=800) #150
 		self.clip = clip
 		self.frame = None
 		self.out = None
@@ -73,21 +73,23 @@ class Detection():
 			# Calculate area and remove small elements
 			area = cv2.contourArea(cnt)
 			#if area > 50:
-			print(area)
-			if area > 290 and area < 2600:
+			#print(area)
+			if area > 100 and area < 2600:
 				cv2.drawContours(self.frame, [cnt], -1, (0, 255, 0), 2)
 				x, y, w, h = cv2.boundingRect(cnt)
 				#print(area)
 				cv2.drawContours(mask, cnt, -1, 255, -1)
 				r,b,v,_ = cv2.mean(self.frame, mask=mask)
 				mean = (r+b+v)/3
+                
 				if mean < 100:  # If it's black team
 					 self.c = 1
 					 self.detections.append([x, y, w, h])
 				else: # If it's white team
 					self.c = 0
 					self.detections.append([x, y, w, h])
-					
+			#	print(mean)
+                
 
 				
 			   # print(mean)
@@ -114,23 +116,29 @@ class Detection():
             
 			self.DisplayGoal = 15
 			self.tracker.goal = False
+            
+
 			if self.c == 0:
 			#	print("blanc")
 				self.score_White = self.score_White + 1
 			if self.c == 1:
 			#	print("noir")
 				self.score_Black = self.score_Black + 1
+             
 		
 		if self.DisplayGoal > 0:
 			cv2.putText(self.frame, "GOAL !", (0 , round(self.frame.shape[1]/2) ), cv2.FONT_HERSHEY_PLAIN, 6, (0, 0, 255), 10)
 			self.DisplayGoal = self.DisplayGoal - 1
 		else:
 			self.display_slow_motion = False
+        
+       
 
 		cv2.putText(self.frame, "Score: ", (0 , round(self.frame.shape[1]*1.1) ), cv2.FONT_HERSHEY_PLAIN, 3, (0, 0, 255), 3 )
 		cv2.putText(self.frame, "White Team: {}".format(self.score_White), (round(self.frame.shape[0]/2.50), round(self.frame.shape[1]*1.2) ), cv2.FONT_HERSHEY_PLAIN, 1.5, (255, 255, 255), 2 )
 		cv2.putText(self.frame, "Black Team: {}".format(self.score_Black), (0 , round(self.frame.shape[1]*1.2) ), cv2.FONT_HERSHEY_PLAIN, 1.5, (255, 255, 255), 2 )
 		cv2.imshow("Frame", self.frame)
+        
 
 
 		key = cv2.waitKey(30) #60
