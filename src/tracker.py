@@ -11,6 +11,7 @@ class EuclideanDistTracker:
         # each time a new object id detected, the count will increase by one
         self.id_count = 0
         self.goal = False
+        self.on_board = False
         self.list_goals = []
 
 # (140,120)
@@ -22,7 +23,7 @@ class EuclideanDistTracker:
         dy = self.center_points[id1][1] - coord[1]
         return math.hypot(dx , dy)
 
-    def update(self, objects_rect,coord):
+    def update(self, objects_rect, coord, dim_rect):
         # Objects boxes and ids
         objects_bbs_ids = []
         #if len(objects_rect) > 0:
@@ -41,19 +42,30 @@ class EuclideanDistTracker:
                 dist = math.hypot(cx - pt[0], cy - pt[1])
                 
                 #print("id: {} \t x: {} \t y: {} \t w: {} \t h: {} \t dist: {}".format(id,cx,cy,w,h,round(dist,3) ))
+                #print(dist)
+                if dist < 10 and dist > 2: 
+                    if self.distance(id,coord) < coord[2]/1.4:
+                        if id not in self.list_goals:
+                            self.list_goals.append(id)
+                            self.goal = True
+                            self.on_board = False
+                    else:
+                        xr, yr, wr, hr = dim_rect
+                        if cx > xr and cx < xr + wr and cy > yr and cy < yr + hr:
+                            #print("1 point")
+                            #print(self.distance(id,coord))
+                            self.on_board = True
 
-                if dist < 10 and self.distance(id,coord) < coord[2]/1.5:
-                    if id not in self.list_goals:
-                        self.list_goals.append(id)
-                        self.goal = True
 
                 if dist > 30 and dist < 800:
                     self.center_points[id] = (cx, cy)
                     #print("id:{} \t x: {} y:{}".format(id,cx,cy))
                     if self.distance(id,coord) < coord[2] and id not in self.list_goals:
                         self.list_goals.append(id)
-
                         self.goal = True
+                        self.on_board = False
+
+
                     same_object_detected = True
                     # break
                # if dist < 8 :

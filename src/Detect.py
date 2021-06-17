@@ -16,6 +16,7 @@ class Detection():
 		self.detections = []
 		self.contours = []
 		self.hole_coord = []
+		self.board = []
 		self.c = 2
 		self.score_White = 0
 		self.score_Black = 0
@@ -24,6 +25,7 @@ class Detection():
 		self.list_frame = []
 		self.goal_index = 0
 		self.count_goal = -1
+		self.count_board = -1
 		#self.save()
 
 	def save(self):
@@ -99,7 +101,7 @@ class Detection():
 		
 
 	def object_tracking(self):
-		boxes_ids = self.tracker.update(self.detections, self.hole_coord)
+		boxes_ids = self.tracker.update(self.detections, self.hole_coord, self.board)
 		for box_id in boxes_ids:
 			x, y, w, h, id = box_id
 			cv2.rectangle(self.frame, (x, y), (x + w, y + h), (0, 255, 0), 3)
@@ -123,15 +125,34 @@ class Detection():
 			self.tracker.goal = False
 
 			if self.c == 0 and self.count_goal < 0:
-				self.score_White = self.score_White + 1
+				self.score_White = self.score_White + 3
 				self.count_goal = 10
 
 			if self.c == 1 and self.count_goal < 0 :
-				self.score_Black = self.score_Black + 1
+				self.score_Black = self.score_Black + 3
 				self.count_goal = 10
-			 
+		
+		if self.tracker.on_board and self.count_goal < 0:
+			
+			self.tracker.on_board = False
+
+			if self.c == 0 and self.count_board < 0:
+				self.score_White = self.score_White + 1
+				self.count_board = 10
+
+			if self.c == 1 and self.count_board < 0 :
+				self.score_Black = self.score_Black + 1
+				self.count_board = 10
+
+
+
+
+
 		if self.count_goal > -1:
 			self.count_goal -= 1
+
+		if self.count_board > -1:
+			self.count_board -= 1
 
 		if self.DisplayGoal > 0:
 			cv2.putText(self.frame, "GOAL !", (0 , round(self.frame.shape[1]/2) ), cv2.FONT_HERSHEY_PLAIN, 6, (0, 0, 255), 10)
@@ -146,7 +167,7 @@ class Detection():
 		
 
 
-		key = cv2.waitKey(20) #60
+		key = cv2.waitKey(15) #60
 		if key == 27:
 			return 0
 		else:
@@ -196,12 +217,12 @@ class Detection():
 				epsilon = 0.05*cv2.arcLength(i,True)
 				approx = cv2.approxPolyDP(i,epsilon,True)
 				
-				if cv2.contourArea(i) > 50 and len(approx) == 4:
-					print(cv2.contourArea(i))
+				if cv2.contourArea(i) > 70000 and len(approx) == 4:
+					cntrRect.append(approx)
 					cv2.drawContours(self.frame,cntrRect,-1,(0,255,0),2)
-					cntrRect.append(approx)	
+					self.board = cv2.boundingRect(i)
 
-
+		print(self.board)
 		cv2.imwrite("rectangle.png",self.frame)
 
 
