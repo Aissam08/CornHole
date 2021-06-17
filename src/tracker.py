@@ -39,18 +39,20 @@ class EuclideanDistTracker:
             same_object_detected = False
             for id, pt in self.center_points.items():
                 dist = math.hypot(cx - pt[0], cy - pt[1])
-                #print(dist)
+                
+                #print("id: {} \t x: {} \t y: {} \t w: {} \t h: {} \t dist: {}".format(id,cx,cy,w,h,round(dist,3) ))
+
+                if dist < 10 and self.distance(id,coord) < coord[2]/1.5:
+                    if id not in self.list_goals:
+                        self.list_goals.append(id)
+                        self.goal = True
 
                 if dist > 30 and dist < 800:
                     self.center_points[id] = (cx, cy)
-                    #print(self.distance(id,coord))
                     #print("id:{} \t x: {} y:{}".format(id,cx,cy))
                     if self.distance(id,coord) < coord[2] and id not in self.list_goals:
                         self.list_goals.append(id)
-                        #print(self.distance(id,coord))
-                        #print(self.list_goals)
-                        #print(id)                
-                        # print("id:{} \t dist:{} ".format(id,self.distance(id,coord)))
+
                         self.goal = True
                     same_object_detected = True
                     # break
