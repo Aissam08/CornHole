@@ -9,6 +9,7 @@ class Detection():
 		print("Starting detection. . .")
 		self.tracker = EuclideanDistTracker()
 		self.object_detector = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold=800)
+		# self.object_detector = cv2.createBackgroundSubtractorKNN(history=400, dist2Threshold=800, detectShadows = True)
 		self.clip = clip
 		self.frame = None
 		self.out = None
@@ -132,17 +133,17 @@ class Detection():
 				self.score_Black = self.score_Black + 3
 				self.count_goal = 10
 		
-		if self.tracker.on_board and self.count_goal < 0:
+		# if self.tracker.on_board and self.count_goal < 0:
 			
-			self.tracker.on_board = False
+		# 	self.tracker.on_board = False
 
-			if self.c == 0 and self.count_board < 0:
-				self.score_White = self.score_White + 1
-				self.count_board = 10
+		# 	if self.c == 0 and self.count_board < 0:
+		# 		self.score_White = self.score_White + 1
+		# 		self.count_board = 10
 
-			if self.c == 1 and self.count_board < 0 :
-				self.score_Black = self.score_Black + 1
-				self.count_board = 10
+		# 	if self.c == 1 and self.count_board < 0 :
+		# 		self.score_Black = self.score_Black + 1
+		# 		self.count_board = 10
 
 
 
@@ -151,8 +152,8 @@ class Detection():
 		if self.count_goal > -1:
 			self.count_goal -= 1
 
-		if self.count_board > -1:
-			self.count_board -= 1
+		# if self.count_board > -1:
+		# 	self.count_board -= 1
 
 		if self.DisplayGoal > 0:
 			cv2.putText(self.frame, "GOAL !", (0 , round(self.frame.shape[1]/2) ), cv2.FONT_HERSHEY_PLAIN, 6, (0, 0, 255), 10)
