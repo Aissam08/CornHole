@@ -125,9 +125,6 @@ class Detection():
 				#print("noir")
 				self.is_white = False
 			
-		
-
-			
 
 			#print(self.count_goal)
 
@@ -139,26 +136,21 @@ class Detection():
 						#print(self.tracker.distance(id,self.hole_coord))				
 				self.tracker.goal = False
 				if in_hole:
+					self.DisplayGoal = 15
 					if self.is_white:
 						self.score_White = self.score_White + 3
 					else:
 						self.score_Black = self.score_Black + 3
 					
-					#assistant_speaks("Do you want to see your goal in slow motion ?")
-					#answer = get_audio()
+					# if self.ask_player("Do you want to watch your goal in slow motion?") == True:
+					# 	self.show_goal()
 
-					#if answer == "yes":
-						#print("Yes")
-						#self.show_goal()
-					#else:
-						#print("no")
-
-
-					self.DisplayGoal = 15
+					
 					self.tracker.goal = False
 					self.tracker.on_board = False
 
-		
+
+
 		if self.tracker.on_board and self.count_goal < 0:
 			
 			self.tracker.on_board = False
@@ -183,7 +175,15 @@ class Detection():
 				if self.c == 1:
 					self.score_Black = self.score_Black + 1
 
+		# if self.score_Black > 10:
+		# 	print("Black team won the game")
+		# 	if self.ask_player("Do you want to restart the game ?"):
+		# 		self.restart_game()
 
+		# if self.score_White > 10:
+		# 	print("White team won the game")
+		# 	if self.ask_player("Do you want to restart the game ?"):
+		# 		self.restart_game()
 
 
 		if self.DisplayGoal > 0:
@@ -199,7 +199,7 @@ class Detection():
 		
 
 
-		key = cv2.waitKey(30) #60 #1
+		key = cv2.waitKey(20) #60 #1
 		if key == 27:
 			return 0
 		else:
@@ -265,6 +265,19 @@ class Detection():
 			if key == 27:
 				break    
 		cv2.destroyAllWindows()	
+
+	def restart_game(self):
+		self.__init__(self.clip)
+		self.object_detection()
+
+	def ask_player(self, string):
+		assistant_speaks(string)
+		answer = get_audio()
+		if answer == "yes":
+			print("Yes")
+			return True
+		else:
+			return False
 
 	def run(self):
 		while True:

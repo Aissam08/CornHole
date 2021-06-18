@@ -2,16 +2,16 @@ from Detect import *
 
 
 def download_video():
-	cap = cv2.VideoCapture(3)
-	#out = cv2.VideoWriter('vid/video4.mp4',cv2.VideoWriter_fourcc(*"MJPG"), 30,(640,480))
+	cap = cv2.VideoCapture(2)
+	out = cv2.VideoWriter('vid/video4.mp4',cv2.VideoWriter_fourcc(*"MJPG"), 30,(640,480))
 
 	while(cap.isOpened()):
 	    ret, frame = cap.read()
 	    if ret==True:
-	        #frame = cv2.flip(frame,0)
+	        frame = cv2.flip(frame,0)
 
 	        # write the flipped frame
-	        #out.write(frame)
+	        out.write(frame)
 
 	        cv2.imshow('frame',frame)
 	        if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -20,7 +20,7 @@ def download_video():
 	        break
 	# Release everything if job is finished
 	cap.release()
-	#out.release()
+	out.release()
 	cv2.destroyAllWindows()
 
 
