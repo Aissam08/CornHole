@@ -52,12 +52,13 @@ class EuclideanDistTracker:
                             self.goal = True
                             #print(self.list_goals)
                             #self.on_board = False
-                    # else:
-                    #     xr, yr, wr, hr = dim_rect
-                    #     if cx > xr and cx < xr + wr and cy > yr and cy < yr + hr:
-                    #         #print("1 point")
-                    #         #print(self.distance(id,coord))
-                    #         self.on_board = True
+
+                        
+                    else:
+                         xr, yr, wr, hr = dim_rect
+                         if cx > xr and cx < xr + wr and cy > yr and cy < yr + hr:
+                             #print(self.distance(id,coord))
+                             self.on_board = True
 
 
                 if dist >= 40 and dist < 100:

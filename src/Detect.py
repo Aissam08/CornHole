@@ -79,9 +79,7 @@ class Detection():
 			i += 1
 			# Calculate area and remove small elements
 			area = cv2.contourArea(cnt)
-			# if area > 20:
-			# 	print(area)
-			if area > 100 and area < 2600:
+			if area > 100 and area < 2600: #100 et 2600
 				cv2.drawContours(self.frame, [cnt], -1, (0, 255, 0), 2)
 				x, y, w, h = cv2.boundingRect(cnt)
 				#print("num : {} \t x: {} \t y: {} \t w: {} \t h: {}".format(i,x,y,w,h))
@@ -108,6 +106,9 @@ class Detection():
 			x, y, w, h, id = box_id
 			cv2.rectangle(self.frame, (x, y), (x + w, y + h), (0, 255, 0), 3)
 
+		if self.count_goal > -1:
+			self.count_goal -= 1
+
 		if self.tracker.goal:
 			self.goal_index = self.cpt_frame
 			cv2.putText(self.frame, "GOAL !", (0 , round(self.frame.shape[1]/2) ), cv2.FONT_HERSHEY_PLAIN, 6, (0, 0, 255), 10)
@@ -123,9 +124,10 @@ class Detection():
 				self.count_goal = 30
 				#print("noir")
 				self.is_white = False
+			
+		
 
-			if self.count_goal > -1:
-				self.count_goal -= 1
+			
 
 			#print(self.count_goal)
 
@@ -142,38 +144,47 @@ class Detection():
 					else:
 						self.score_Black = self.score_Black + 3
 					
-					assistant_speaks("Do you want to see your goal in slow motion ?")
-					answer = get_audio()
+					#assistant_speaks("Do you want to see your goal in slow motion ?")
+					#answer = get_audio()
 
-					if answer == "yes":
-						print("Yes")
-						self.show_goal()
-					else:
-						print("no")
+					#if answer == "yes":
+						#print("Yes")
+						#self.show_goal()
+					#else:
+						#print("no")
 
 
 					self.DisplayGoal = 15
 					self.tracker.goal = False
+					self.tracker.on_board = False
 
-
+		
 		if self.tracker.on_board and self.count_goal < 0:
 			
 			self.tracker.on_board = False
 
 			if self.c == 0 and self.count_board < 0:
-				self.score_White = self.score_White + 1
-				self.count_board = 10
+				#self.score_White = self.score_White + 1
+				self.count_board = 15
 
 			if self.c == 1 and self.count_board < 0 :
-				self.score_Black = self.score_Black + 1
-				self.count_board = 10
-
-
-
-
+				#self.score_Black = self.score_Black + 1
+				self.count_board = 15
 
 		if self.count_board > -1:
 			self.count_board -= 1
+		
+		if self.count_board == 5:
+			print(self.count_goal)
+			if self.count_goal < 0:
+				if self.c == 0:
+					self.score_White = self.score_White + 1
+
+				if self.c == 1:
+					self.score_Black = self.score_Black + 1
+
+
+
 
 		if self.DisplayGoal > 0:
 			cv2.putText(self.frame, "GOAL !", (0 , round(self.frame.shape[1]/2) ), cv2.FONT_HERSHEY_PLAIN, 6, (0, 0, 255), 10)
@@ -188,7 +199,7 @@ class Detection():
 		
 
 
-		key = cv2.waitKey(1) #60
+		key = cv2.waitKey(30) #60 #1
 		if key == 27:
 			return 0
 		else:
