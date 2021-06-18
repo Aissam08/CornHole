@@ -25,8 +25,8 @@ def download_video():
 
 
 def main():
-	cap = cv2.VideoCapture("vid/video.mp4")
-	#cap = cv2.VideoCapture(3)
+	#cap = cv2.VideoCapture("vid/video4.mp4")
+	cap = cv2.VideoCapture(2)
 	D = Detection(cap)
 	D.run()
 	cap.release()

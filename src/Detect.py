@@ -8,8 +8,8 @@ class Detection():
 	def __init__(self, clip):
 		print("Starting detection. . .")
 		self.tracker = EuclideanDistTracker()
-		self.object_detector = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold=800)
-		# self.object_detector = cv2.createBackgroundSubtractorKNN(history=400, dist2Threshold=800, detectShadows = True)
+		# self.object_detector = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold=800)
+		self.object_detector = cv2.createBackgroundSubtractorKNN(history=100, dist2Threshold=800, detectShadows = True)
 		self.clip = clip
 		self.frame = None
 		self.out = None
@@ -19,6 +19,7 @@ class Detection():
 		self.hole_coord = []
 		self.board = []
 		self.c = 2
+		self.is_white = False
 		self.score_White = 0
 		self.score_Black = 0
 		self.DisplayGoal = 0
@@ -108,52 +109,71 @@ class Detection():
 			cv2.rectangle(self.frame, (x, y), (x + w, y + h), (0, 255, 0), 3)
 
 		if self.tracker.goal:
+			self.goal_index = self.cpt_frame
 			cv2.putText(self.frame, "GOAL !", (0 , round(self.frame.shape[1]/2) ), cv2.FONT_HERSHEY_PLAIN, 6, (0, 0, 255), 10)
-			
-			# assistant_speaks("Do you want to see your goal in slow motion ?")
-			# answer = get_audio()
-
-			# if answer == "yes":
-			# 	print("Yes")
-			# 	self.show_goal()
-			# else:
-			# 	print("no")
-
-			# self.goal_index = self.cpt_frame
-			# self.show_goal()
-
-			self.DisplayGoal = 15
-			self.tracker.goal = False
 
 			if self.c == 0 and self.count_goal < 0:
-				self.score_White = self.score_White + 3
-				self.count_goal = 10
+				#self.score_White = self.score_White + 3	
+				self.count_goal = 30
+				#print("blanc")
+				self.is_white = True
 
 			if self.c == 1 and self.count_goal < 0 :
-				self.score_Black = self.score_Black + 3
-				self.count_goal = 10
-		
-		# if self.tracker.on_board and self.count_goal < 0:
+				#self.score_Black = self.score_Black + 3
+				self.count_goal = 30
+				#print("noir")
+				self.is_white = False
+
+			if self.count_goal > -1:
+				self.count_goal -= 1
+
+			#print(self.count_goal)
+
+			if self.count_goal == 5:
+				in_hole = False
+				for id in self.tracker.list_goals:
+					if self.tracker.distance(id,self.hole_coord) < self.hole_coord[2]:
+						in_hole = True	
+						#print(self.tracker.distance(id,self.hole_coord))				
+				self.tracker.goal = False
+				if in_hole:
+					if self.is_white:
+						self.score_White = self.score_White + 3
+					else:
+						self.score_Black = self.score_Black + 3
+					
+					assistant_speaks("Do you want to see your goal in slow motion ?")
+					answer = get_audio()
+
+					if answer == "yes":
+						print("Yes")
+						self.show_goal()
+					else:
+						print("no")
+
+
+					self.DisplayGoal = 15
+					self.tracker.goal = False
+
+
+		if self.tracker.on_board and self.count_goal < 0:
 			
-		# 	self.tracker.on_board = False
+			self.tracker.on_board = False
 
-		# 	if self.c == 0 and self.count_board < 0:
-		# 		self.score_White = self.score_White + 1
-		# 		self.count_board = 10
+			if self.c == 0 and self.count_board < 0:
+				self.score_White = self.score_White + 1
+				self.count_board = 10
 
-		# 	if self.c == 1 and self.count_board < 0 :
-		# 		self.score_Black = self.score_Black + 1
-		# 		self.count_board = 10
-
-
+			if self.c == 1 and self.count_board < 0 :
+				self.score_Black = self.score_Black + 1
+				self.count_board = 10
 
 
 
-		if self.count_goal > -1:
-			self.count_goal -= 1
 
-		# if self.count_board > -1:
-		# 	self.count_board -= 1
+
+		if self.count_board > -1:
+			self.count_board -= 1
 
 		if self.DisplayGoal > 0:
 			cv2.putText(self.frame, "GOAL !", (0 , round(self.frame.shape[1]/2) ), cv2.FONT_HERSHEY_PLAIN, 6, (0, 0, 255), 10)
@@ -168,7 +188,7 @@ class Detection():
 		
 
 
-		key = cv2.waitKey(15) #60
+		key = cv2.waitKey(1) #60
 		if key == 27:
 			return 0
 		else:
@@ -228,9 +248,9 @@ class Detection():
 
 
 	def show_goal(self):
-		for frame in self.list_frame[self.goal_index - 30:self.goal_index]:
+		for frame in self.list_frame[self.goal_index - 50:self.goal_index]:
 			cv2.imshow('Ralenti', frame)
-			key = cv2.waitKey(120)
+			key = cv2.waitKey(100)
 			if key == 27:
 				break    
 		cv2.destroyAllWindows()	

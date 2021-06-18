@@ -41,16 +41,17 @@ class EuclideanDistTracker:
             for id, pt in self.center_points.items():
                 dist = math.hypot(cx - pt[0], cy - pt[1])
                 
-                print("id: {} \t x: {} \t y: {} \t w: {} \t h: {} \t dist: {}".format(id,cx,cy,w,h,round(dist,3) ))
+                #print("id: {} \t x: {} \t y: {} \t w: {} \t h: {} \t dist: {}".format(id,cx,cy,w,h,round(dist,3) ))
                 if dist < 40 and dist > 2:
                     
                     if self.distance(id,coord) < coord[2]/2:
                         if id not in self.list_goals:
-                        print("Speed:{}".format(dist))
-                        print("Distance :{}".format(self.distance(id,coord)))
-                        self.list_goals.append(id)
-                        self.goal = True
-                        self.on_board = False
+                            print("Speed:{}".format(dist))
+                            print("Distance :{}".format(self.distance(id,coord)))
+                            self.list_goals.append(id)
+                            self.goal = True
+                            #print(self.list_goals)
+                            #self.on_board = False
                     # else:
                     #     xr, yr, wr, hr = dim_rect
                     #     if cx > xr and cx < xr + wr and cy > yr and cy < yr + hr:
@@ -62,11 +63,12 @@ class EuclideanDistTracker:
                 if dist >= 40 and dist < 100:
                     self.center_points[id] = (cx, cy)
                     #print("id:{} \t x: {} y:{}".format(id,cx,cy))
-                    if self.distance(id,coord) < coord[2]: # and id not in self.list_goals:
-                    #     #self.list_goals.append(id)
-                    #     # print("Speed:{}".format(dist))
-                        #print("Distance :{}".format(self.distance(id,coord)))
+                    if self.distance(id,coord) < coord[2]/1.4 and id not in self.list_goals:
+                        print("Speed:{}".format(dist))
+                        print("Distance :{}".format(self.distance(id,coord)))
+                        self.list_goals.append(id)
                         self.goal = True
+                        #print(self.list_goals)
                     #     self.on_board = False
 
 
