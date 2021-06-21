@@ -36,7 +36,7 @@ def get_audio():
           
         # recording the audio using speech recognition
         audio = rObject.listen(source, phrase_time_limit = 2) 
-    print("Stop.") # limit 5 secs
+    #print("Stop.") # limit 5 secs
   
     try:
         text = rObject.recognize_google(audio, language ='en-US')

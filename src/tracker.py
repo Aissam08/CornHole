@@ -13,25 +13,30 @@ class EuclideanDistTracker:
         self.goal = False
         self.on_board = False
         self.list_goals = []
-
-# (140,120)
-# (145,115)
-# (390,130)
+        self.list_board = []
 
     def distance(self, id1, coord):
         dx = self.center_points[id1][0]  - coord[0]
         dy = self.center_points[id1][1] - coord[1]
         return math.hypot(dx , dy)
 
+    def onBoard(self, id1, coord):
+        cx = self.center_points[id1][0] 
+        cy = self.center_points[id1][1]
+        
+        xr, yr, wr, hr = coord
+        if cx > xr and cx < xr + wr and cy > yr and cy < yr + hr - 30:
+
+            return True
+        else:
+            return False
+
     def update(self, objects_rect, coord, dim_rect):
         # Objects boxes and ids
         objects_bbs_ids = []
-        #if len(objects_rect) > 0:
         # Get center point of new object
-       
         
-        for rect in objects_rect:
-            
+        for rect in objects_rect:  
             x, y, w, h= rect
             cx = x + w/2
             cy = y + h/ 2
@@ -41,78 +46,39 @@ class EuclideanDistTracker:
             for id, pt in self.center_points.items():
                 dist = math.hypot(cx - pt[0], cy - pt[1])
                 
-                #print("id: {} \t x: {} \t y: {} \t w: {} \t h: {} \t dist: {}".format(id,cx,cy,w,h,round(dist,3) ))
-                if dist < 40 and dist > 2:
-                    
+                if dist < 40 and dist > 2:                    
                     if self.distance(id,coord) < coord[2]/2:
                         if id not in self.list_goals:
-                            print("Speed:{}".format(dist))
-                            print("Distance :{}".format(self.distance(id,coord)))
+                            # print("Speed:{}".format(dist))
+                            # print("Distance :{}".format(self.distance(id,coord)))
                             self.list_goals.append(id)
                             self.goal = True
-                            #print(self.list_goals)
-                            #self.on_board = False
-
-                        
                     else:
                          xr, yr, wr, hr = dim_rect
                          if cx > xr and cx < xr + wr and cy > yr and cy < yr + hr:
-                             #print(self.distance(id,coord))
-                             self.on_board = True
+                             if id not in self.list_board:
+                                self.list_board.append(id)
+                                self.on_board = True
 
 
                 if dist >= 40 and dist < 100:
                     self.center_points[id] = (cx, cy)
                     #print("id:{} \t x: {} y:{}".format(id,cx,cy))
                     if self.distance(id,coord) < coord[2]/1.4 and id not in self.list_goals:
-                        print("Speed:{}".format(dist))
-                        print("Distance :{}".format(self.distance(id,coord)))
+                        # print("Speed:{}".format(dist))
+                        # print("Distance :{}".format(self.distance(id,coord)))
                         self.list_goals.append(id)
                         self.goal = True
                         #print(self.list_goals)
-                    #     self.on_board = False
 
 
                     same_object_detected = True
-                    # break
-               # if dist < 8 :
-                        # print("fixe")
-                        # print(x)
-                        # print(y)
-                    
-                #     same_object_detected = True
-                #     #print("Objet fixe : {}".format(id))
-
 
             # New object is detected we assign the ID to that object
             if same_object_detected is False:
                 self.center_points[self.id_count] = (cx, cy)
                 self.list_objects.append((cx,cy))
                 objects_bbs_ids.append([x, y, w, h, self.id_count])
-                self.id_count += 1
-
-        # Clean the dictionary by center points to remove IDS not used anymore
-        
-        # new_center_points = {}
-        # for obj_bb_id in objects_bbs_ids:
-        #     _, _, _, _, object_id = obj_bb_id
-        #     center = self.center_points[object_id]
-        #     new_center_points[object_id] = center
-        
-        # # Update dictionary with IDs not used removed
-        # self.center_points = new_center_points.copy()       
+                self.id_count += 1     
         
         return objects_bbs_ids
-        
-
-"""
-    def distance(self, id1):
-        dx = self.center_points[id1][0]  - 140 #video 2
-        dy = self.center_points[id1][1] - 120
-      #  dx = self.center_points[id1][0]  - 125 #video3
-      #  dy = self.center_points[id1][1] - 90
-       # dx = self.center_points[id1][0]  - 130 video 2v2
-       # dy = self.center_points[id1][1] - 110
-        return round(math.hypot(dx , dy),4)
-
-"""
