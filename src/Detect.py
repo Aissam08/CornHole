@@ -9,7 +9,7 @@ class Detection():
 		print("Starting detection. . .")
 		self.tracker = EuclideanDistTracker()
 		# self.object_detector = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold=800)
-		self.object_detector = cv2.createBackgroundSubtractorKNN(history=100, dist2Threshold=800, detectShadows = True)
+		self.object_detector = cv2.createBackgroundSubtractorKNN(history=20, dist2Threshold=800, detectShadows = True)
 		self.clip = clip
 		self.frame = None
 		self.out = None
@@ -128,7 +128,7 @@ class Detection():
 
 			#print(self.count_goal)
 
-			if self.count_goal == 5:
+			if self.count_goal == 1:
 				in_hole = False
 				for id in self.tracker.list_goals:
 					if self.tracker.distance(id,self.hole_coord) < self.hole_coord[2]:
