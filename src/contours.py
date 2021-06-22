@@ -7,7 +7,7 @@ import os
 
 #os.system("del img/BB_21.png")
 print(np.pi)
-img = cv.imread("/Users/clead/Documents/ING3/Stage/CornHole/Picturehole2.png")
+img = cv.imread("photo.jpg")
 hsv = cv.cvtColor(img, cv.COLOR_BGR2HSV)
 h,s,v = cv.split(hsv)
 ret_h, th_h = cv.threshold(h,0,255,cv.THRESH_BINARY + cv.THRESH_OTSU)

@@ -10,7 +10,7 @@ class Detection():
 		print("Starting detection. . .")
 		self.tracker = EuclideanDistTracker()
 		# self.object_detector = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold=800)
-		self.object_detector = cv2.createBackgroundSubtractorKNN(history=20, dist2Threshold=800, detectShadows = True)
+		self.object_detector = cv2.createBackgroundSubtractorKNN(history=50, dist2Threshold=800, detectShadows = True)
 		self.clip = clip
 		self.frame = None
 		self.out = None
@@ -30,14 +30,15 @@ class Detection():
 		self.count_goal = -1
 		self.count_board = -1
 		self.switch = -1
-		#self.starting_game()
+		self.started = False
+		# self.starting_game()
 
 	def object_detection(self):
 		ret, self.frame = self.clip.read()
 		self.cpt_frame += 1
 
-		# if self.cpt_frame % 1000 == 0:
-		# 	self.detected_hole = False
+		if self.cpt_frame % 1000 == 0:
+			self.detected_hole = False
 
 		self.list_frame.append(self.frame)
 
@@ -47,6 +48,7 @@ class Detection():
 			height, width, _ = self.frame.shape
 		except AttributeError:
 			print("Ending detection. . .")
+			assistant_speaks("Ending game")
 			exit()
 
 		# Hole detection : 
@@ -59,9 +61,12 @@ class Detection():
 
 		# 1. Object Detection
 		mask = self.object_detector.apply(self.frame)
-		_, mask = cv2.threshold(mask, 254, 255, cv2.THRESH_BINARY)
-		contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-		
+		_, mask = cv2.threshold(mask, 253, 255, cv2.THRESH_BINARY)
+		grid_RGB = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
+		contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+		bright = cv2.inRange(grid_RGB ,70,254)
+
+		# print("Frame : {} \t Gray: {}".format(self.frame.shape, bright.shape))
 		self.detections = []
 		i = 0
 
@@ -69,21 +74,30 @@ class Detection():
 			i += 1
 			# Calculate area and remove small elements
 			area = cv2.contourArea(cnt)
-			if area > 100 and area < 2600: #100 et 2600
-				cv2.drawContours(self.frame, [cnt], -1, (0, 255, 0), 3)
+			if area > 100 and area < 2600:
+				cv2.drawContours(self.frame, [cnt], -1, (0, 255, 0), 2)
 				x, y, w, h = cv2.boundingRect(cnt)
-				cv2.drawContours(mask, cnt, -1, 255, -1)
-				r,b,v,_ = cv2.mean(self.frame, mask=mask)
+				cv2.drawContours(mask, cnt, -1, 255, 1)
+
+				# crop_img = cv2.cvtColor(self.frame[y:y+h, x:x+w], cv2.COLOR_BGR2GRAY)
+				# crop_mask = mask[y:y+h, x:x+w]
+				# r,b,v,_ = cv2.mean(crop_img, mask = crop_mask)
+				print(grid_RGB[round(y+h/2)][round(x+w/2)])
+				col = bright[round(y+h/2)][round(x+w/2)]
 				#print("Couleur: (r = {}, b = {}, v = {})".format(r,b,v))
-				mean = (r+v)/2
-				
-				if v < 40:  # If it's black team
-					 self.c = 1
-					 self.detections.append([x, y, w, h])
+				#print((cv2.mean(cnt)))
+				#mean = ra+va+ba
+				# print("Image: {}".format(round(ra+ba+va)))
+				if col < 100:  # If it's black team
+					self.c = 1
+					self.detections.append([x, y, w, h])
 				else: # If it's white team
 					self.c = 0
 					self.detections.append([x, y, w, h])
-				
+		a,b,c,d = self.board
+		#cv2.rectangle(self.frame, (a, b), (a+c, b+d), (0, 0, 255), -1)
+
+
 	def object_tracking(self):
 		"""Study moving object position"""
 		boxes_ids = self.tracker.update(self.detections, self.hole_coord, self.board)
@@ -94,10 +108,15 @@ class Detection():
 		self.verif_score()
 		self.display_score()
 		cv2.imshow("Frame", self.frame)
-		#self.verif_winner(2)
+		# if not self.started:
+		# 	self.starting_game()
+		# 	self.started = True
+		self.verif_winner(12)
 
-		key = cv2.waitKey(30)
+		key = cv2.waitKey(1)
 		if key == 27:
+			assistant_speaks("Ending game")
+			print("Ending detection. . .")
 			return 0
 		else:
 			return 1
@@ -111,13 +130,14 @@ class Detection():
 			starter = "White"
 			self.switch = 1
 
-		phrase = "Starting game, "+starter+" team begin"
+		phrase = "Starting Corn Hole game, "+starter+" team begin"
 		assistant_speaks(phrase)
 
 	def verif_score(self):
 		"""Increase and display score"""
 		if self.count_goal > -1:
 			self.count_goal -= 1
+
 
 		if self.tracker.goal:
 			self.goal_index = self.cpt_frame
@@ -131,8 +151,6 @@ class Detection():
 				self.switch = 1
 				self.count_goal = 30
 				self.is_white = False
-			
-
 
 			if self.count_goal == 1:
 				in_hole = False
@@ -149,6 +167,7 @@ class Detection():
 				
 					
 					# if self.ask_player("Do you want to watch your goal in slow motion?") == True:
+					# if self.ask_player("Goal, wanna see it again?"):
 					# 	self.show_goal()
 
 					
@@ -157,12 +176,17 @@ class Detection():
 
 		if self.tracker.on_board and self.count_goal < 0:
 			
+
+			if self.c == 0:
+				self.is_white = True
+
+			if self.c == 1 :
+				self.is_white = False
+
 			self.tracker.on_board = False
 
 			if self.count_board < 0:
-				#self.score_White = self.score_White + 1
 				self.count_board = 30
-				#print("Switch team2")
 		
 
 		if self.count_board > -1:
@@ -197,6 +221,8 @@ class Detection():
 			if self.ask_player(qst):
 				self.restart_game()
 			else:
+				assistant_speaks("Ending game")
+				print("Ending detection. . .")
 				exit()
 
 	def display_score(self):
@@ -282,7 +308,7 @@ class Detection():
 		cv2.destroyAllWindows()	
 
 	def restart_game(self):
-		assistant_speaks("")
+		assistant_speaks("Restarting game")
 		board = self.board
 		self.__init__(self.clip)
 		self.board = board
