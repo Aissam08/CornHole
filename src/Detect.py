@@ -77,17 +77,13 @@ class Detection():
 			if area > 100 and area < 2600:
 				cv2.drawContours(self.frame, [cnt], -1, (0, 255, 0), 2)
 				x, y, w, h = cv2.boundingRect(cnt)
+				cv2.imshow(str(area),cnt)
 				cv2.drawContours(mask, cnt, -1, 255, 1)
+				a, b = (round(y+h/2), round(x+w/2))
+				zone = bright[a-2:a+2,b-2:b+2]
+				col = cv2.mean(zone)[0]
+				print(col)
 
-				# crop_img = cv2.cvtColor(self.frame[y:y+h, x:x+w], cv2.COLOR_BGR2GRAY)
-				# crop_mask = mask[y:y+h, x:x+w]
-				# r,b,v,_ = cv2.mean(crop_img, mask = crop_mask)
-				print(grid_RGB[round(y+h/2)][round(x+w/2)])
-				col = bright[round(y+h/2)][round(x+w/2)]
-				#print("Couleur: (r = {}, b = {}, v = {})".format(r,b,v))
-				#print((cv2.mean(cnt)))
-				#mean = ra+va+ba
-				# print("Image: {}".format(round(ra+ba+va)))
 				if col < 100:  # If it's black team
 					self.c = 1
 					self.detections.append([x, y, w, h])
