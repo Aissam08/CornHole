@@ -1,3 +1,4 @@
+
 import math
 import numpy as np
 import os
@@ -14,6 +15,11 @@ class EuclideanDistTracker:
         self.on_board = False
         self.list_goals = []
         self.list_board = []
+        self.col = 0
+        self.white = 0
+        self.black = 0
+        self.first_color = -1
+        self.is_detected = False
 
     def distance(self, id1, coord):
         dx = self.center_points[id1][0]  - coord[0]
@@ -24,20 +30,48 @@ class EuclideanDistTracker:
         cx = self.center_points[id1][0] 
         cy = self.center_points[id1][1]
         
+        # A ajouter : Retourner False quand on est dans le trou 
         xr, yr, wr, hr = coord
-        if cx > xr and cx < xr + wr and cy > yr and cy < yr + hr - 30:
-
+        if cx > xr and cx < xr + wr and cy > yr and cy < yr + hr:
             return True
         else:
             return False
 
-    def update(self, objects_rect, coord, dim_rect):
+
+    def update_board(self, objects_rect, coord, dim_rect):
+        objects_bbs_ids = []
+        for rect in objects_rect:  
+            x, y, w, h, col = rect
+            cx = x + w/2
+            cy = y + h/ 2
+            xr, yr, wr, hr = dim_rect
+            same_object_detected = False
+            for id, pt in self.center_points.items():
+                dist = math.hypot(cx - pt[0], cy - pt[1])
+                if dist < 40 and dist > 10:    
+                    if cx > xr and cx < xr + wr and cy > yr and cy < yr + hr:
+                        if id not in self.list_board:
+                            self.list_board.append(id)
+                            self.on_board = True
+                    same_object_detected = True
+
+            if same_object_detected is False:
+                self.center_points[self.id_count] = (cx, cy, col)
+                self.list_objects.append((cx,cy))
+                objects_bbs_ids.append([x, y, w, h, self.id_count])
+                self.id_count += 1
+                if not self.is_detected:
+                    self.first_color = col
+                    self.is_detected = True
+
+
+    def update_goal(self, objects_rect, coord, dim_rect):
         # Objects boxes and ids
         objects_bbs_ids = []
         # Get center point of new object
         
         for rect in objects_rect:  
-            x, y, w, h= rect
+            x, y, w, h, col = rect
             cx = x + w/2
             cy = y + h/ 2
 
@@ -45,41 +79,47 @@ class EuclideanDistTracker:
             same_object_detected = False
             for id, pt in self.center_points.items():
                 dist = math.hypot(cx - pt[0], cy - pt[1])
-                
-                if dist < 40 and dist > 2:                    
-                    if self.distance(id,coord) < coord[2]/2:
+                if dist < 40 and dist > 10:              
+                    if self.distance(id,coord) < coord[2]/1.5:
                         if id not in self.list_goals:
-                            # print("Speed:{}".format(dist))
-                            # print("Distance :{}".format(self.distance(id,coord)))
                             self.list_goals.append(id)
                             self.goal = True
-                    else:
-                         xr, yr, wr, hr = dim_rect
-                         if cx > xr and cx < xr + wr and cy > yr and cy < yr + hr:
-                             if id not in self.list_board:
-                                self.list_board.append(id)
-                                self.on_board = True
+                            self.col = col
+                            if(self.col == 0):
+                                self.white +=1
+                            else:
+                                self.black +=1
 
 
                 if dist >= 40 and dist < 100:
-                    self.center_points[id] = (cx, cy)
+                    self.center_points[id] = (cx, cy, col)
                     #print("id:{} \t x: {} y:{}".format(id,cx,cy))
                     if self.distance(id,coord) < coord[2]/1.4 and id not in self.list_goals:
                         # print("Speed:{}".format(dist))
                         # print("Distance :{}".format(self.distance(id,coord)))
+                        # print(id)
+                        # print(self.center_points[id])
                         self.list_goals.append(id)
                         self.goal = True
-                        #print(self.list_goals)
+                        self.col = col
+                        # if(self.col == 0):
+                        #     self.white +=1
+                        # else:
+                        #     self.black +=1
+                
 
 
                     same_object_detected = True
 
             # New object is detected we assign the ID to that object
             if same_object_detected is False:
-                self.center_points[self.id_count] = (cx, cy)
+                self.center_points[self.id_count] = (cx, cy, col)
                 self.list_objects.append((cx,cy))
                 objects_bbs_ids.append([x, y, w, h, self.id_count])
-                self.id_count += 1     
+                self.id_count += 1
+                if not self.is_detected:
+                    self.first_color = col
+                    self.is_detected = True
 
         
         # new_center_points = {}
@@ -89,6 +129,5 @@ class EuclideanDistTracker:
         #     new_center_points[object_id] = center
         
         # # Update dictionary with IDs not used removed
-        # self.center_points = new_center_points.copy()       
-                
-        return objects_bbs_ids
+        # self.center_points = new_center_points.copy()
+        # return objects_bbs_ids
