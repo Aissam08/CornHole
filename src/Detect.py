@@ -32,7 +32,7 @@ class Detection():
 		self.started = False
 		self.state_game = {'W': set(), 'B' : set()}
 		self.last_state_game = {'W': set(), 'B' : set()}
-		self.score1W = []
+		self.score1W = [] #-- list of bag's first position on board
 		self.score1B = []
 
 	def starting_game(self):
@@ -110,17 +110,19 @@ class Detection():
 
 
 	def object_detection(self):
-		"""Detect objects on screen"""
+		"""Detect moving objects (dynamic)"""
 		mask = self.object_detector.apply(self.frame)
 
+		# slow objects detected with in range mask
 		mask_board = cv2.inRange(mask ,50,254)
+		# speed objects are more easily detecteddetected with treshold mask
 		_, mask_goal = cv2.threshold(mask, 150, 255, cv2.THRESH_BINARY)
 
-		grid_RGB = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
-
+		grey_mask = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
 		contour_board, _ = cv2.findContours(mask_board, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 		contour_goal, _ = cv2.findContours(mask_goal, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-		bright = cv2.inRange(grid_RGB ,130,254)
+		# bright image give black and white matrix
+		bright = cv2.inRange(grey_mask ,130,254)
 
 		xr, yr, wr, hr = self.board
 		self.detections = []
@@ -132,6 +134,7 @@ class Detection():
 			if area > 100 and area < 10000:
 				x, y, w, h = cv2.boundingRect(cnt)
 				cv2.drawContours(mask_goal, cnt, -1, 255, -1)
+				# take color around center point
 				a, b = (round(x+w/2), round(y+h/2))
 				zone = bright[b-5:b+5,a-5:a+5]
 				col = cv2.mean(zone)[0]
@@ -231,7 +234,7 @@ class Detection():
 
 	def update_game(self):
 		"""Used to detect all bags that left the board"""
-		# it the size of the static list corresponding to the old frame > the size of the static list corresponding to the old frame:
+		# if the size of the static list corresponding to the old frame > the size of the static list corresponding to the old frame:
 		# We add in self.last_state_game['B'] all the bag which are only on the static list corresponding to the old frame
 		if len(self.last_state_game['B']) > len(self.state_game['B']): 
 			lb = []
@@ -242,7 +245,6 @@ class Detection():
 						
 			for b in lb:
 				self.last_state_game['B'].remove(b)
-
 		
 		else:
 			self.last_state_game['B'] = set()
@@ -298,7 +300,7 @@ class Detection():
 		self.update_state_game(blacks,'B')
 		self.update_state_game(whites,'W')
 
-
+		#-- update on-board list bag every 50 frames
 		if self.cpt_frame % 50 == 0 and self.count_board < 0:
 			self.update_game()
 
@@ -334,11 +336,11 @@ class Detection():
 				#-- Remove the bag from in-board list
 				if in_hole:
 					self.DisplayGoal = 15
-
+					# -- several conditions : most present color, and first color must be the same
 					if self.tracker.first_color == 0 or self.tracker.white > self.tracker.black:
 						self.score_White = self.score_White + 3
 						self.tracker.is_detected = False
-
+					#-- actual color detected can be different, we make sure it's the same
 					elif self.tracker.center_points[id][2] == 0 and self.switch == 0:
 						self.score_White = self.score_White + 3
 					else:	
@@ -355,7 +357,6 @@ class Detection():
 		"""Score verification (+1)"""
 
 		#-- After 30 frames, verify on board bags
-
 		if self.tracker.on_board and self.count_goal < 0:
 			if self.color == 0:
 				self.is_white = True
@@ -469,8 +470,8 @@ class Detection():
 		self.verif_score()
 		self.display_score()
 
-		x,y,w,h = self.board
-		cv2.rectangle(self.frame, (x,y) , (x+w, y+h), (0,0,255), 1)
+		# x,y,w,h = self.board
+		# cv2.rectangle(self.frame, (x,y) , (x+w, y+h), (0,0,255), 1)
 		
 		frame = cv2.resize(self.frame, (720,640))
 		cv2.imshow("Frame", frame)
