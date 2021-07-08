@@ -430,6 +430,10 @@ class Detection():
 				cv2.putText(self.frame, "BLACK TEAM WON!", (0 , round(self.frame.shape[1]/2) ), cv2.FONT_HERSHEY_PLAIN, 3, (0,0,0), 6)
 
 			else:
+				overlay = cv2.imread("img/goal.jpg")
+				overlay = cv2.resize(overlay, self.frame.shape[0:2])
+				# cv2.imshow("goal",overlay)
+				cv2.addWeighted(overlay, 1, self.frame, 1 ,0, self.frame)
 				cv2.putText(self.frame, "GOAL !", (0 , round(self.frame.shape[1]/2) ), cv2.FONT_HERSHEY_PLAIN, 6, (0, 0, 255), 10)
 			self.DisplayGoal = self.DisplayGoal - 1
 		
@@ -464,7 +468,8 @@ class Detection():
 		x,y,w,h = self.board
 		cv2.rectangle(self.frame, (x,y) , (x+w, y+h), (0,0,255), 1)
 		
-		cv2.imshow("Frame", self.frame)
+		frame = cv2.resize(self.frame, (720,640))
+		cv2.imshow("Frame", frame)
 		
 		if not self.started:
 			self.update_game()

@@ -41,7 +41,7 @@ def main():
 	cap = cv2.VideoCapture("vid/goal1.mp4")
 	# cap = cv2.VideoCapture(2)
 	cap.set(cv2.CAP_PROP_AUTOFOCUS, 0)
-	D = Detection(cap, Debug = False)
+	D = Detection(cap, Debug = True)
 	D.run()
 	cap.release()
 	cv2.destroyAllWindows()
@@ -52,7 +52,3 @@ if __name__ == '__main__':
 		main()
 	except KeyboardInterrupt:
 		pass
-	# __rootpath__ = str(pathlib.Path(__file__).parent.parent)
-	# filenames = next(os.walk(__rootpath__), (None, None, []))[2]  # [] if no file	# download_video()
-	# print(filenames)
-	# film()
