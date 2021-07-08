@@ -26,6 +26,16 @@ class EuclideanDistTracker:
         dy = self.center_points[id1][1] - coord[1]
         return math.hypot(dx , dy)
 
+    def inHole(self, obj, coord):
+        x, y = obj
+        dx = x - coord[0]
+        dy = y - coord[1]
+        # print("Distance : {} \t color :".format(round(math.hypot(dx , dy))),end=" ")
+        if math.hypot(dx , dy) < coord[2]:
+            return True
+
+        return False
+
     def onBoard(self, id1, coord):
         cx = self.center_points[id1][0] 
         cy = self.center_points[id1][1]
@@ -62,6 +72,7 @@ class EuclideanDistTracker:
                 self.id_count += 1
                 if not self.is_detected:
                     self.first_color = col
+                    # print("Board -  coord : ({},{}) \t col : {}".format(cx,cy,col))
                     self.is_detected = True
 
 
@@ -80,10 +91,12 @@ class EuclideanDistTracker:
             for id, pt in self.center_points.items():
                 dist = math.hypot(cx - pt[0], cy - pt[1])
                 if dist < 40 and dist > 10:              
-                    if self.distance(id,coord) < coord[2]/1.5:
+                    #if self.distance(id,coord) < coord[2]/1.5:
+                    if self.inHole((cx,cy),coord):
                         if id not in self.list_goals:
                             self.list_goals.append(id)
                             self.goal = True
+                            # if  not self.inHole((cx,cy),coord):
                             self.col = col
                             if(self.col == 0):
                                 self.white +=1
@@ -101,18 +114,18 @@ class EuclideanDistTracker:
                         # print(self.center_points[id])
                         self.list_goals.append(id)
                         self.goal = True
-                        self.col = col
-                        # if(self.col == 0):
-                        #     self.white +=1
-                        # else:
-                        #     self.black +=1
-                
+                        if  not self.inHole((cx,cy),coord):
+                            self.col = col
+                            if(self.col == 0):
+                                self.white +=1
+                            else:
+                                self.black +=1
 
 
                     same_object_detected = True
 
             # New object is detected we assign the ID to that object
-            if same_object_detected is False:
+            if same_object_detected is False :
                 self.center_points[self.id_count] = (cx, cy, col)
                 self.list_objects.append((cx,cy))
                 objects_bbs_ids.append([x, y, w, h, self.id_count])

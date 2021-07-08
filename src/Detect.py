@@ -57,10 +57,12 @@ class Detection():
 		hole_rounded = np.uint16(np.around(hole))
 		self.hole_coord = hole_rounded[0][0]
 		self.detected_hole = True
-		self.hole_coord[2] += 4
+		if self.hole_coord[2] > 41 : 
+			self.hole_coord[2] -= 10
+		elif self.hole_coord[2] < 31:
+			self.hole_coord[2] += 4
+
 		x, y ,r = self.hole_coord
-		if r > 41 : 
-			self.hole_coord = x,y,r-10
 		print("Hole detected: (x = {}, y = {}, r = {})"\
 			.format(x,y,r))
 
@@ -124,7 +126,7 @@ class Detection():
 		bright = cv2.inRange(grid_RGB ,130,254)
 		xr, yr, wr, hr = self.board
 		self.detections = []
-		cv2.imshow("Bright", bright)
+		# cv2.imshow("Bright", bright)
 		
 		for cnt in contour_goal:
 			# Calculate area and remove small elements
@@ -135,15 +137,18 @@ class Detection():
 				#cv2.drawContours(self.frame, cnt, -1, (0,255,0), 2)
 				cv2.drawContours(mask_goal, cnt, -1, 255, -1)
 				a, b = (round(x+w/2), round(y+h/2))
-				zone = bright[b-2:b+2,a-2:a+2]
+				zone = bright[b-5:b+5,a-5:a+5]
 				col = cv2.mean(zone)[0]
 				# if a > xr and a < xr + wr:
 				#   if b > yr and b < yr + hr:
 				if col < 150:  # If it's black team
 					self.color = 1
+					cv2.drawContours(self.frame, cnt, -1, (0,255,0), 3)
 					self.detections.append([x, y, w, h, self.color])
+					# print((a,b,col))
 				else: # If it's white team
 					self.color = 0
+					cv2.drawContours(self.frame, cnt, -1, (0,0,255), 3)
 					self.detections.append([x, y, w, h, self.color])
 
 		for cnt in contour_board:
@@ -218,8 +223,8 @@ class Detection():
 		for coord in self.last_state_game['W']:
 			if self.Distance(coord,hole) < self.hole_coord[2]*2 and self.Distance(coord,hole) > self.hole_coord[2]/3:
 				self.score_White += 2
-				print("+2 White")
-				print(coord)
+				# print("+2 White")
+				# print(coord)
 			elif self.border_lim(coord):
 				self.score_White -= 1
 				print("-1 White")
@@ -228,8 +233,8 @@ class Detection():
 		for coord in self.last_state_game['B']:
 			if self.Distance(coord,hole) < self.hole_coord[2]*2 and self.Distance(coord,hole) > self.hole_coord[2]/3:
 				self.score_Black += 2
-				print("+2 Black")
-				print(coord)
+				# print("+2 Black")
+				# print(coord)
 			elif self.border_lim(coord):
 				self.score_Black -= 1
 				print(coord)
@@ -304,7 +309,8 @@ class Detection():
 
 		self.update_state_game(blacks,'B')
 		self.update_state_game(whites,'W')
-		
+
+
 		# print("\nBlack : {}".format((self.state_game['B'])))
 		# print("White : {}\n".format((self.state_game['W'])))
 		if self.cpt_frame % 50 == 0 and self.count_board < 0:
@@ -332,25 +338,33 @@ class Detection():
 			if self.count_goal == 1:
 				in_hole = False
 				#-- If object detected in hole after 29 frames
+				col1 = self.tracker.center_points[self.tracker.list_goals[0]][2]
+				print(col1)
 				for id in self.tracker.list_goals:
-					if self.tracker.distance(id,self.hole_coord) < self.hole_coord[2]:
+					if self.tracker.distance(id,self.hole_coord) < self.hole_coord[2]/1.4:
 						in_hole = True
+						
 				self.tracker.goal = False
 				# print(self.tracker.col)
 				#-- Add 3 points if the bag is still in hole
 				#-- Remove the bag from in-board list
 				if in_hole:
 					self.DisplayGoal = 15
-					ci = self.tracker.col
-					if self.tracker.first_color == 0:
+					# print("W : {} \t B : {}".format(self.tracker.white, self.tracker.black))
+					# print(self.tracker.first_color)
+					if self.tracker.first_color == 0 or self.tracker.white > self.tracker.black:
 						self.score_White = self.score_White + 3
 						self.tracker.is_detected = False
+						# print(self.tracker.center_points[id][2])
 						# print(self.tracker.center_points[id])
+						# print(round(self.tracker.distance(id,self.hole_coord)))
 
 					else:
 						self.score_Black = self.score_Black + 3
 						self.tracker.is_detected = False
-						# print(self.tracker.center_points[id])
+						# print(self.tracker.center_points[id][2])
+						# print(round(self.tracker.distance(id,self.hole_coord)))
+						# cv2.imwrite("frame.jpg",self.frame)
 
 					self.tracker.white = 0
 					self.tracker.black = 0
@@ -400,15 +414,16 @@ class Detection():
 						self.score1W.append(self.tracker.center_points[id])
 						self.switch = 0
 						self.tracker.is_detected = False
-						print(self.tracker.distance(id,self.hole_coord))
+						# print(self.tracker.center_points[id])
+						# print(round(self.tracker.distance(id,self.hole_coord)))
 					else :
 						#if self.added:
 						self.score_Black = self.score_Black + 1
 						self.score1B.append(self.tracker.center_points[id])
 						self.switch = 1
 						self.tracker.is_detected = False
-						print(self.tracker.distance(id,self.hole_coord))
-						print(self.hole_coord[2])
+						# print(self.tracker.center_points[id])
+						# print(round(self.tracker.distance(id,self.hole_coord)))
 
 			except IndexError:
 				pass
@@ -421,6 +436,9 @@ class Detection():
 
 		self.verif_goal()
 		self.verif_board()
+		# print("\n")
+		# print(self.state_game)
+		# print(self.last_state_game)
 
 
 	def verif_winner(self, score):
@@ -494,7 +512,7 @@ class Detection():
 		if not self.Debug:
 			self.verif_winner(12)
 		
-		key = cv2.waitKey(1)
+		key = cv2.waitKey(20)
 		
 		if key == ord('p'):
 			cv2.waitKey(-1)
