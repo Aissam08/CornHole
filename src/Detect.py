@@ -17,7 +17,7 @@ class Detection():
 		self.detected_hole = False
 		self.detections = []
 		self.hole_coord = []
-		self.board = []  #[161, 150, 345, 268]
+		self.board = []  
 		self.color = 2 # -- 0 : white / 1: black
 		self.is_white = False
 		self.score_White = 0
@@ -118,7 +118,6 @@ class Detection():
 		"""Detect objects on screen"""
 		mask = self.object_detector.apply(self.frame)
 		mask_board = cv2.inRange(mask ,50,254)
-		# cv2.imshow("Mask",mask)
 		_, mask_goal = cv2.threshold(mask, 150, 255, cv2.THRESH_BINARY)
 		grid_RGB = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
 		contour_board, _ = cv2.findContours(mask_board, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -126,7 +125,6 @@ class Detection():
 		bright = cv2.inRange(grid_RGB ,130,254)
 		xr, yr, wr, hr = self.board
 		self.detections = []
-		# cv2.imshow("Bright", bright)
 		
 		for cnt in contour_goal:
 			# Calculate area and remove small elements
@@ -134,23 +132,16 @@ class Detection():
 
 			if area > 100 and area < 10000:
 				x, y, w, h = cv2.boundingRect(cnt)
-				#cv2.drawContours(self.frame, cnt, -1, (0,255,0), 2)
 				cv2.drawContours(mask_goal, cnt, -1, 255, -1)
 				a, b = (round(x+w/2), round(y+h/2))
 				zone = bright[b-5:b+5,a-5:a+5]
 				col = cv2.mean(zone)[0]
-				# if a > xr and a < xr + wr:
-				#   if b > yr and b < yr + hr:
 				if col < 150:  # If it's black team
 					self.color = 1
-					cv2.rectangle(self.frame, (round(x),round(y)),(round(x+w),round(y+h)), (0,255,0), 3)
 					self.detections.append([x, y, w, h, self.color])
-					# print((a,b,col))
 				else: # If it's white team
 					self.color = 0
-					#cv2.drawContours(self.frame, cnt, -1, (0,0,255), 3)
 					self.detections.append([x, y, w, h, self.color])
-					cv2.rectangle(self.frame, (round(x),round(y)),(round(x+w),round(y+h)), (0,0,255), 3)
 
 		for cnt in contour_board:
 			# Calculate area and remove small elements
@@ -164,7 +155,6 @@ class Detection():
 				if col < 150:  # If it's black team
 					self.color = 1
 					self.detections.append([x, y, w, h, self.color])
-					# cv2.drawContours(self.frame, cnt, -1, (0,255,0), 3)
 				else: # If it's white team
 					self.color = 0
 					self.detections.append([x, y, w, h, self.color])
@@ -224,23 +214,16 @@ class Detection():
 		for coord in self.last_state_game['W']:
 			if self.Distance(coord,hole) < self.hole_coord[2]*1.75 and self.Distance(coord,hole) > self.hole_coord[2]/3:
 				self.score_White += 2
-				# print("+2 White")
-				# print(coord)
 			elif self.border_lim(coord):
 				self.score_White -= 1
-				print("-1 White")
-				print(coord)
 
 		for coord in self.last_state_game['B']:
 			print(self.Distance(coord,hole))
 			if self.Distance(coord,hole) < self.hole_coord[2]*1.75 and self.Distance(coord,hole) > self.hole_coord[2]/3:
 				self.score_Black += 2
-				# print("+2 Black")
-				# print(coord)
 			elif self.border_lim(coord):
 				self.score_Black -= 1
-				print(coord)
-				print("-1 Black")
+
 
 	def update_game(self):
 		self.added = False
@@ -282,7 +265,6 @@ class Detection():
 			for coord in L:
 				self.last_state_game[C].add(coord)
 
-		# self.cpt_frame -= (self.cpt_frame % 50) + 1 
 
 
 	def static_detection(self):
@@ -312,10 +294,7 @@ class Detection():
 		self.update_state_game(blacks,'B')
 		self.update_state_game(whites,'W')
 
-		# cv2.imshow("Black", bright_black)
 
-		# print("\nLast: {}".format(self.last_state_game))
-		# print("Actual: {}".format(self.state_game))
 		if self.cpt_frame % 50 == 0 and self.count_board < 0:
 			self.update_game()
 
@@ -347,36 +326,23 @@ class Detection():
 						
 
 				self.tracker.goal = False
-				# print(self.tracker.col)
 				#-- Add 3 points if the bag is still in hole
 				#-- Remove the bag from in-board list
 				if in_hole:
 					self.DisplayGoal = 15
-					# print("W : {} \t B : {}".format(self.tracker.white, self.tracker.black))
-					# print(self.tracker.first_color)
+
 					if self.tracker.first_color == 0 or self.tracker.white > self.tracker.black:
 						self.score_White = self.score_White + 3
 						self.tracker.is_detected = False
-						# print(self.tracker.center_points[id][2])
-						# print(self.tracker.center_points[id])
-						# print(round(self.tracker.distance(id,self.hole_coord)))
 
 					elif self.tracker.center_points[id][2] == 0 and self.switch == 0:
 						self.score_White = self.score_White + 3
 					else:	
 						self.score_Black = self.score_Black + 3
 						self.tracker.is_detected = False
-						# print(self.tracker.center_points[id][2])
-						# print(round(self.tracker.distance(id,self.hole_coord)))
 
 					self.tracker.white = 0
-					self.tracker.black = 0
-	
-					if not self.Debug:
-						if self.ask_player("Goal, wanna see it in slow motion?"):
-							self.show_goal()
-
-					
+					self.tracker.black = 0					
 					self.tracker.goal = False
 					self.tracker.on_board = False
 
@@ -410,21 +376,17 @@ class Detection():
 					xi, yi, ci = self.tracker.center_points[id]
 					self.update_game()
 					if ci == 0:
-						#if self.added:
 						self.score_White = self.score_White + 1
 						self.score1W.append(self.tracker.center_points[id])
 						self.switch = 0
 						self.tracker.is_detected = False
-						# print(self.tracker.center_points[id])
-						# print(round(self.tracker.distance(id,self.hole_coord)))
+
 					else :
-						#if self.added:
+
 						self.score_Black = self.score_Black + 1
 						self.score1B.append(self.tracker.center_points[id])
 						self.switch = 1
 						self.tracker.is_detected = False
-						# print(self.tracker.center_points[id])
-						# print(round(self.tracker.distance(id,self.hole_coord)))
 
 			except IndexError:
 				pass
@@ -470,9 +432,11 @@ class Detection():
 			else:
 				cv2.putText(self.frame, "GOAL !", (0 , round(self.frame.shape[1]/2) ), cv2.FONT_HERSHEY_PLAIN, 6, (0, 0, 255), 10)
 			self.DisplayGoal = self.DisplayGoal - 1
-		#if self.DisplayGoal == 5 and not self.Debug:
-		#   if self.ask_player("Goal, wanna see it in slow motion?"):
-		#       self.show_goal()
+		
+		if self.DisplayGoal == 5 and not self.Debug:
+		  if self.ask_player("Goal, wanna see it in slow motion?"):
+		      self.show_goal()
+
 		if self.switch == 0:
 			col = (0,0,0)
 		else:
