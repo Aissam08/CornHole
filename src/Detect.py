@@ -30,7 +30,6 @@ class Detection():
 		self.count_board = -1
 		self.switch = -1
 		self.started = False
-		self.added = False
 		self.state_game = {'W': set(), 'B' : set()}
 		self.last_state_game = {'W': set(), 'B' : set()}
 		self.score1W = []
@@ -91,8 +90,6 @@ class Detection():
 	def video_capture(self):
 		ret, self.frame = self.clip.read()
 		self.cpt_frame += 1
-		# if self.cpt_frame % 8000 == 0:
-		#   self.detected_hole = False
 
 		self.frame = cv2.rotate(self.frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
 		self.list_frame.append(self.frame)
@@ -111,18 +108,20 @@ class Detection():
 			self.get_board()
 			return
 
-		# a,b,c,d = self.board
-		# cv2.rectangle(self.frame, (a, b), (a+c, b+d), (0, 0, 255), -1)
 
 	def object_detection(self):
 		"""Detect objects on screen"""
 		mask = self.object_detector.apply(self.frame)
+
 		mask_board = cv2.inRange(mask ,50,254)
 		_, mask_goal = cv2.threshold(mask, 150, 255, cv2.THRESH_BINARY)
+
 		grid_RGB = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
+
 		contour_board, _ = cv2.findContours(mask_board, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 		contour_goal, _ = cv2.findContours(mask_goal, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 		bright = cv2.inRange(grid_RGB ,130,254)
+
 		xr, yr, wr, hr = self.board
 		self.detections = []
 		
@@ -165,17 +164,20 @@ class Detection():
 
 
 	def static_dist(self, coord):
+		"""Return the distance between an object and the hole"""
 		x,y,w,h = coord
 		dx = x+w/2  - self.hole_coord[0]
 		dy = y+h/2  - self.hole_coord[1]
 		return math.hypot(dx , dy)
 
 	def Distance(self,coord1, coord2):
+		"""Return the distance between two objects"""
 		dx = coord1[0] - coord2[0]
 		dy = coord1[1] - coord2[1]
 		return math.hypot(dx , dy)
 
 	def border_lim(self,coord):
+		"""Return True if an object is close to the border of the board, otherwise return False"""
 		xr, yr, wr, hr = self.board
 		x, y = coord
 		if x < xr + 60 or x > xr + wr - 60:
@@ -185,7 +187,9 @@ class Detection():
 		return False
 
 	def update_state_game(self, objects, col):
-		"""Save coordinates of bags on board """
+		""" We check if the number of bags in dynamic > number of bag in static, it it's the case::
+		we add bags detected in dynamic close to a bag in static in the static list in order to have the good number of bag in static 
+		detection even if bags are really close to each other """
 		xr, yr, wr, hr  = self.board
 		if col == 'B':
 			score = self.score1B
@@ -202,32 +206,34 @@ class Detection():
 				if a > xr and a < xr + wr and len(approx) > 3:
 					if b > yr and b < yr + hr and self.static_dist([x, y, w, h]) > self.hole_coord[2]:
 						self.state_game[col].add((a,b))
-						if len(score) > len(self.state_game[col]):
+						if len(score) > len(self.state_game[col]): # We check if the number of bag in static detection < number og bag in dynamic detection
 							varB = len(self.state_game[col])
 							for i in score:
 								if self.Distance(i, (a,b)) < math.hypot(h,w) :
-									self.state_game[col].add((a,b))
+									self.state_game[col].add((a,b)) # We add in static list
 
 	def update_score(self):
-		"""Used when a bag is not anymore in board"""
+		"""Used to adjust the score when a bag is not anymore in board"""
 		hole = self.hole_coord[0:2]
-		for coord in self.last_state_game['W']:
+		for coord in self.last_state_game['W']: # self.last_state_game['W'] is all white bags which left the board
 			if self.Distance(coord,hole) < self.hole_coord[2]*1.75 and self.Distance(coord,hole) > self.hole_coord[2]/3:
-				self.score_White += 2
+				self.score_White += 2 # If the bag coordinate are close to the hole we add +2
 			elif self.border_lim(coord):
-				self.score_White -= 1
+				self.score_White -= 1 # If the bag coordinate are close to borders of the board we add -1
 
-		for coord in self.last_state_game['B']:
+		for coord in self.last_state_game['B']: # self.last_state_game['B'] is all black bags which left the board
 			print(self.Distance(coord,hole))
 			if self.Distance(coord,hole) < self.hole_coord[2]*1.75 and self.Distance(coord,hole) > self.hole_coord[2]/3:
-				self.score_Black += 2
+				self.score_Black += 2 # If the bag coordinate are close to the hole we add +2
 			elif self.border_lim(coord):
-				self.score_Black -= 1
+				self.score_Black -= 1 # If the bag coordinate are close to borders of the board we add -1
 
 
 	def update_game(self):
-		self.added = False
-		if len(self.last_state_game['B']) > len(self.state_game['B']):
+		"""Used to detect all bags that left the board"""
+		# it the size of the static list corresponding to the old frame > the size of the static list corresponding to the old frame:
+		# We add in self.last_state_game['B'] all the bag which are only on the static list corresponding to the old frame
+		if len(self.last_state_game['B']) > len(self.state_game['B']): 
 			lb = []
 			for i in self.last_state_game['B']:
 				for j in self.state_game['B']:
@@ -237,12 +243,11 @@ class Detection():
 			for b in lb:
 				self.last_state_game['B'].remove(b)
 
-		elif len(self.last_state_game['B']) < len(self.state_game['B']):
-			self.added = True
+		
 		else:
 			self.last_state_game['B'] = set()
 
-
+		# We do the same for White
 		if len(self.last_state_game['W']) > len(self.state_game['W']):
 			lw = []
 			for i in self.last_state_game['W']:
@@ -253,22 +258,21 @@ class Detection():
 			for w in lw:
 				self.last_state_game['W'].remove(w)
 		
-		elif len(self.last_state_game['W']) < len(self.state_game['W']):
-			self.added = True
+		
 		else:
 			self.last_state_game['W'] = set()
 		
-		self.update_score()
+		self.update_score() # We call upadate_score in order to display the score corresponding
 		self.last_state_game['W'] = set()
 		self.last_state_game['B'] = set()
-		for C, L in self.state_game.items():
+		for C, L in self.state_game.items(): # self.last_state_game = self.state_game
 			for coord in L:
 				self.last_state_game[C].add(coord)
 
 
 
 	def static_detection(self):
-		"""Detect all object on board and their color"""
+		"""Detect all object on board and their color using the Static detection ( difference between the first frame and the actual frame)"""
 		img1 = self.frame
 		img2 = self.list_frame[0]
 
@@ -375,13 +379,13 @@ class Detection():
 					in_board = True
 					xi, yi, ci = self.tracker.center_points[id]
 					self.update_game()
-					if ci == 0:
+					if ci == 0: # If the bag is white
 						self.score_White = self.score_White + 1
 						self.score1W.append(self.tracker.center_points[id])
 						self.switch = 0
 						self.tracker.is_detected = False
 
-					else :
+					else : # If the score is black
 
 						self.score_Black = self.score_Black + 1
 						self.score1B.append(self.tracker.center_points[id])
@@ -471,17 +475,17 @@ class Detection():
 		frame = cv2.resize(self.frame, (720,640))
 		cv2.imshow("Frame", frame)
 		
-		if not self.started:
+		if not self.started: # If we start the game
 			self.update_game()
 			self.starting_game()
 			self.started = True
 
-		if not self.Debug:
+		if not self.Debug: # If we want to have a winner
 			self.verif_winner(12)
 		
 		key = cv2.waitKey(50)
 		
-		if key == ord('p'):
+		if key == ord('p'): # If we want to pause the program
 			cv2.waitKey(-1)
 
 		if key == 27:
