@@ -329,7 +329,7 @@ class Detection():
 				self.count_goal = 30
 				self.is_white = True
 
-			if self.color== 1 and self.count_goal < 0 :
+			if self.color == 1 and self.count_goal < 0 :
 				#-- Black team scored
 				self.switch = 1
 				self.count_goal = 30
@@ -338,12 +338,10 @@ class Detection():
 			if self.count_goal == 1:
 				in_hole = False
 				#-- If object detected in hole after 29 frames
-				col1 = self.tracker.center_points[self.tracker.list_goals[0]][2]
-				print(col1)
 				for id in self.tracker.list_goals:
-					if self.tracker.distance(id,self.hole_coord) < self.hole_coord[2]/1.4:
+					if self.tracker.distance(id,self.hole_coord) < self.hole_coord[2]:
 						in_hole = True
-						
+
 				self.tracker.goal = False
 				# print(self.tracker.col)
 				#-- Add 3 points if the bag is still in hole
@@ -360,6 +358,7 @@ class Detection():
 						# print(round(self.tracker.distance(id,self.hole_coord)))
 
 					else:
+						# if self.tracker.center_points[id][2] == 1:
 						self.score_Black = self.score_Black + 3
 						self.tracker.is_detected = False
 						# print(self.tracker.center_points[id][2])
@@ -368,8 +367,7 @@ class Detection():
 
 					self.tracker.white = 0
 					self.tracker.black = 0
-
-					
+	
 					if not self.Debug:
 						if self.ask_player("Goal, wanna see it in slow motion?"):
 							self.show_goal()

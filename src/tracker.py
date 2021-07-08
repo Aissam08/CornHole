@@ -72,7 +72,6 @@ class EuclideanDistTracker:
                 self.id_count += 1
                 if not self.is_detected:
                     self.first_color = col
-                    # print("Board -  coord : ({},{}) \t col : {}".format(cx,cy,col))
                     self.is_detected = True
 
 
@@ -84,24 +83,23 @@ class EuclideanDistTracker:
         for rect in objects_rect:  
             x, y, w, h, col = rect
             cx = x + w/2
-            cy = y + h/ 2
+            cy = y + h/2
 
             # Find out if that object was detected already
             same_object_detected = False
             for id, pt in self.center_points.items():
                 dist = math.hypot(cx - pt[0], cy - pt[1])
                 if dist < 40 and dist > 10:              
-                    #if self.distance(id,coord) < coord[2]/1.5:
-                    if self.inHole((cx,cy),coord):
+                    if self.distance(id,coord) < coord[2]/1.5:
                         if id not in self.list_goals:
                             self.list_goals.append(id)
                             self.goal = True
-                            # if  not self.inHole((cx,cy),coord):
-                            self.col = col
-                            if(self.col == 0):
-                                self.white +=1
-                            else:
-                                self.black +=1
+                            if  not self.inHole((cx,cy),coord):
+                                self.col = col
+                                if(self.col == 0):
+                                    self.white +=1
+                                else:
+                                    self.black +=1
 
 
                 if dist >= 40 and dist < 100:
@@ -114,13 +112,13 @@ class EuclideanDistTracker:
                         # print(self.center_points[id])
                         self.list_goals.append(id)
                         self.goal = True
-                        if  not self.inHole((cx,cy),coord):
+
+                        if not self.inHole((cx,cy),coord):
                             self.col = col
                             if(self.col == 0):
                                 self.white +=1
                             else:
                                 self.black +=1
-
 
                     same_object_detected = True
 
@@ -133,8 +131,14 @@ class EuclideanDistTracker:
                 if not self.is_detected:
                     self.first_color = col
                     self.is_detected = True
-
-        
+        # w,b = (0,0)
+        # for id in self.list_goals:
+        #     if self.center_points[id][2] == 0:
+        #         w += 1
+        #     else:
+        #         b+=1
+            
+        # print("W: {} \t B: {}".format(w,b))
         # new_center_points = {}
         # for obj_bb_id in objects_bbs_ids:
         #     _, _, _, _, object_id = obj_bb_id
