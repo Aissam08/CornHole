@@ -24,7 +24,7 @@ class EuclideanDistTracker:
     def distance(self, id1, coord):
         dx = self.center_points[id1][0]  - coord[0]
         dy = self.center_points[id1][1] - coord[1]
-        return math.hypot(dx , dy)
+        return round(math.hypot(dx , dy))
 
     def inHole(self, obj, coord):
         x, y = obj
@@ -89,22 +89,27 @@ class EuclideanDistTracker:
             same_object_detected = False
             for id, pt in self.center_points.items():
                 dist = math.hypot(cx - pt[0], cy - pt[1])
-                if dist < 40 and dist > 10:              
+                if dist < 40 and dist > 10:   
+                    if(col == 0):
+                        self.white +=1
+                    else:
+                        self.black +=1
                     if self.distance(id,coord) < coord[2]/1.5:
                         if id not in self.list_goals:
                             self.list_goals.append(id)
                             self.goal = True
                             if  not self.inHole((cx,cy),coord):
                                 self.col = col
-                                if(self.col == 0):
-                                    self.white +=1
-                                else:
-                                    self.black +=1
+                                
 
 
                 if dist >= 40 and dist < 100:
                     self.center_points[id] = (cx, cy, col)
                     #print("id:{} \t x: {} y:{}".format(id,cx,cy))
+                    if(col == 0):
+                        self.white +=1
+                    else:
+                        self.black +=1
                     if self.distance(id,coord) < coord[2]/1.4 and id not in self.list_goals:
                         # print("Speed:{}".format(dist))
                         # print("Distance :{}".format(self.distance(id,coord)))
@@ -115,10 +120,6 @@ class EuclideanDistTracker:
 
                         if not self.inHole((cx,cy),coord):
                             self.col = col
-                            if(self.col == 0):
-                                self.white +=1
-                            else:
-                                self.black +=1
 
                     same_object_detected = True
 
