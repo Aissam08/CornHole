@@ -34,9 +34,14 @@ class Detection():
 		self.last_state_game = {'W': set(), 'B' : set()}
 		self.score1W = [] #-- list of bag's first position on board
 		self.score1B = []
+		self.mixer = pygame.mixer
 
 	def starting_game(self):
 		"""Initiate game and chose which team begin"""
+		self.goal_img = cv2.imread("img/goal-removebg-preview.png")
+		self.goal_img = cv2.resize(self.goal_img, (480,640))
+		self.goal_img[:, :, 0] = 0
+		self.goal_img[:, :, 2] = 0
 		if randint(1,2) == 1:
 			starter = "Black"
 			self.switch = 0
@@ -47,6 +52,11 @@ class Detection():
 		if not self.Debug:
 			phrase = "Starting Corn Hole game, "+starter+" team begin"
 			assistant_speaks(phrase)
+			playsound.playsound("sound/whistle.mp3", True)
+
+			self.mixer.init()
+			self.mixer.music.load("sound/music.wav")
+			self.mixer.music.play(-1)
 
 	def get_hole(self):
 		"""Get hole coordinates and radius"""
@@ -219,18 +229,21 @@ class Detection():
 		"""Used to adjust the score when a bag is not anymore in board"""
 		hole = self.hole_coord[0:2]
 		for coord in self.last_state_game['W']: # self.last_state_game['W'] is all white bags which left the board
-			if self.Distance(coord,hole) < self.hole_coord[2]*1.75 and self.Distance(coord,hole) > self.hole_coord[2]/3:
-				self.score_White += 2 # If the bag coordinate are close to the hole we add +2
-			elif self.border_lim(coord):
+			print("WHITE : ",str(round(self.Distance(coord,hole))))
+			if self.border_lim(coord):
 				self.score_White -= 1 # If the bag coordinate are close to borders of the board we add -1
 
+			elif self.Distance(coord,hole) < self.hole_coord[2]*3 and self.Distance(coord,hole) > self.hole_coord[2]/3:
+				self.score_White += 2 # If the bag coordinate are close to the hole we add +2
+			
 		for coord in self.last_state_game['B']: # self.last_state_game['B'] is all black bags which left the board
-			print(self.Distance(coord,hole))
-			if self.Distance(coord,hole) < self.hole_coord[2]*1.75 and self.Distance(coord,hole) > self.hole_coord[2]/3:
-				self.score_Black += 2 # If the bag coordinate are close to the hole we add +2
-			elif self.border_lim(coord):
+			print("BLACK : ",str(round(self.Distance(coord,hole))))
+			if self.border_lim(coord):
 				self.score_Black -= 1 # If the bag coordinate are close to borders of the board we add -1
 
+			elif self.Distance(coord,hole) < self.hole_coord[2]*3 and self.Distance(coord,hole) > self.hole_coord[2]/3:
+				self.score_Black += 2 # If the bag coordinate are close to the hole we add +2
+			
 
 	def update_game(self):
 		"""Used to detect all bags that left the board"""
@@ -300,10 +313,13 @@ class Detection():
 		self.update_state_game(blacks,'B')
 		self.update_state_game(whites,'W')
 
-		#-- update on-board list bag every 50 frames
-		if self.cpt_frame % 50 == 0 and self.count_board < 0:
-			self.update_game()
 
+		
+		#-- update on-board list bag every 50 frames
+		if self.cpt_frame % 30 == 0 and self.count_board < 0:
+			print("\nLast: {}".format(self.last_state_game))
+			print("Actual: {}".format(self.state_game))
+			self.update_game()
 
 
 	def verif_goal(self):
@@ -339,14 +355,23 @@ class Detection():
 					# -- several conditions : most present color, and first color must be the same
 					if self.tracker.first_color == 0 or self.tracker.white > self.tracker.black:
 						self.score_White = self.score_White + 3
+						print("W : {} \t B : {}".format(self.tracker.white, self.tracker.black))
+						print("first color : ",str(self.tracker.first_color))
 						self.tracker.is_detected = False
+						self.switch = 0
 					#-- actual color detected can be different, we make sure it's the same
-					elif self.tracker.center_points[id][2] == 0 and self.switch == 0:
+					elif self.switch == 0:
+						print("Tour : ",str(self.switch))
+						print("Color id : ",str(self.tracker.center_points[id][2]))
 						self.score_White = self.score_White + 3
+						self.switch = 0
 					else:	
 						self.score_Black = self.score_Black + 3
+						self.switch = 1
 						self.tracker.is_detected = False
 
+					if not self.Debug:
+						playsound.playsound("sound/Stadefoot1-SF.mp3",True)
 					self.tracker.white = 0
 					self.tracker.black = 0					
 					self.tracker.goal = False
@@ -367,12 +392,12 @@ class Detection():
 			self.tracker.on_board = False
 
 			if self.count_board < 0:
-				self.count_board = 50
+				self.count_board = 80
 
 		if self.count_board > -1:
 			self.count_board -= 1
 		
-		if self.count_board == 20:
+		if self.count_board == 0:
 			in_board = False
 			try:
 				id = self.tracker.list_board[-1]
@@ -423,6 +448,7 @@ class Detection():
 				self.restart_game()
 			else:
 				assistant_speaks("Ending game")
+				playsound.playsound("sound/applause.mp3")
 				print("Ending detection. . .")
 				exit()
 
@@ -435,16 +461,14 @@ class Detection():
 				cv2.putText(self.frame, "BLACK TEAM WON!", (0 , round(self.frame.shape[1]/2) ), cv2.FONT_HERSHEY_PLAIN, 3, (0,0,0), 6)
 
 			else:
-				overlay = cv2.imread("img/goal.jpg")
-				overlay = cv2.resize(overlay, self.frame.shape[0:2])
-				# cv2.imshow("goal",overlay)
-				cv2.addWeighted(overlay, 1, self.frame, 1 ,0, self.frame)
+				# cv2.addWeighted(self.goal_img, 1, self.frame, 0.9 ,0, self.frame)
 				cv2.putText(self.frame, "GOAL !", (0 , round(self.frame.shape[1]/2) ), cv2.FONT_HERSHEY_PLAIN, 6, (0, 0, 255), 10)
 			self.DisplayGoal = self.DisplayGoal - 1
 		
 		if self.DisplayGoal == 5 and not self.Debug:
-		  if self.ask_player("Goal, wanna see it in slow motion?"):
-		      self.show_goal()
+			# playsound.playsound("sound/Stadefoot1-SF.mp3",True)
+			if self.ask_player("Goal, wanna see it in slow motion?"):
+				self.show_goal()
 
 		if self.switch == 0:
 			col = (0,0,0)
@@ -470,11 +494,13 @@ class Detection():
 		self.verif_score()
 		self.display_score()
 
-		# x,y,w,h = self.board
-		# cv2.rectangle(self.frame, (x,y) , (x+w, y+h), (0,0,255), 1)
-		
-		frame = cv2.resize(self.frame, (720,640))
-		cv2.imshow("Frame", frame)
+		x,y,w,h = self.board
+		xc, yc,rc = self.hole_coord
+		cv2.rectangle(self.frame, (x,y) , (x+w, y+h), (0,0,255), 1)
+		cv2.circle(self.frame, (xc,yc), rc, (255,0,0), 3)
+
+		# frame = cv2.resize(self.frame, (720,640))
+		cv2.imshow("Frame", self.frame)
 		
 		if not self.started: # If we start the game
 			self.update_game()
@@ -482,9 +508,9 @@ class Detection():
 			self.started = True
 
 		if not self.Debug: # If we want to have a winner
-			self.verif_winner(12)
+			self.verif_winner(8)
 		
-		key = cv2.waitKey(50)
+		key = cv2.waitKey(1)
 		
 		if key == ord('p'): # If we want to pause the program
 			cv2.waitKey(-1)

@@ -1,11 +1,8 @@
 from Detect import *
-import os
-import pathlib
 
-def download_video():
+def download_video(file):
 	cap = cv2.VideoCapture(2)
-	out = cv2.VideoWriter('vid/goal3.mp4',cv2.VideoWriter_fourcc(*"MJPG"), 30,(640,480))
-
+	out = cv2.VideoWriter("vid/{}.mp4".format(file),cv2.VideoWriter_fourcc(*"MJPG"), 30,(640,480))
 	while(cap.isOpened()):
 	    ret, frame = cap.read()
 	    if ret==True:
@@ -38,8 +35,8 @@ def film():
 
 
 def main():
-	cap = cv2.VideoCapture("vid/goal1.mp4")
-	# cap = cv2.VideoCapture(2)
+	# cap = cv2.VideoCapture("vid/goal1.mp4")
+	cap = cv2.VideoCapture(2)
 	cap.set(cv2.CAP_PROP_AUTOFOCUS, 0)
 	D = Detection(cap, Debug = True)
 	D.run()
@@ -50,5 +47,6 @@ def main():
 if __name__ == '__main__':
 	try:
 		main()
+		# film()
 	except KeyboardInterrupt:
 		pass

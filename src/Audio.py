@@ -5,7 +5,8 @@ from gtts import gTTS # google text to speech
 import os # to save/open files
 #import wolframalpha # to calculate strings into formula
 from selenium import webdriver # to control browser operations
-  
+import pygame
+
 num = 1
 def assistant_speaks(output):
     global num
