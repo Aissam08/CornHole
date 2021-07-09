@@ -65,6 +65,10 @@ class EuclideanDistTracker:
                 speed = math.hypot(cx - pt[0], cy - pt[1])
                 if speed < 40 and speed > 10:    
                     if cx > xr and cx < xr + wr and cy > yr and cy < yr + hr:
+                        if(col == 0):
+                            self.white +=1
+                        else:
+                            self.black +=1
                         if id not in self.list_board:
                             #-- Save all objects detected on board
                             self.list_board.append(id)
@@ -108,6 +112,7 @@ class EuclideanDistTracker:
                         if id not in self.list_goals:
                             self.list_goals.append(id)
                             self.goal = True
+                            # print("lent: ",str(self.distance(id,coord)))
                             if not self.inHole((cx,cy),coord):
                                 #-- get color of last objects detected out of the hole
                                 #-- in case if there are several bags in it
@@ -123,6 +128,7 @@ class EuclideanDistTracker:
                         self.black +=1
                     if self.distance(id,coord) < coord[2]/1.4 and id not in self.list_goals:
                         self.list_goals.append(id)
+                        # print("rapide: ",str(self.distance(id,coord)))
                         self.goal = True
 
                         if not self.inHole((cx,cy),coord):
