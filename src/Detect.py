@@ -231,7 +231,7 @@ class Detection():
 
 	def update_game(self):
 		"""Used to detect all bags that left the board"""
-		# it the size of the static list corresponding to the old frame > the size of the static list corresponding to the old frame:
+		# if the size of the static list corresponding to the old frame > the size of the static list corresponding to the old frame:
 		# We add in self.last_state_game['B'] all the bag which are only on the static list corresponding to the old frame
 		if len(self.last_state_game['B']) > len(self.state_game['B']): 
 			lb = []

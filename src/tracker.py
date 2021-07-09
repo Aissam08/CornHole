@@ -21,7 +21,7 @@ class EuclideanDistTracker:
         self.is_detected = False
 
     def distance(self, id1, coord):
-        """Give distance bitween objectd id1 and other point"""
+        """Give distance between objectd id1 and other point"""
         dx = self.center_points[id1][0]  - coord[0]
         dy = self.center_points[id1][1] - coord[1]
         return round(math.hypot(dx , dy))

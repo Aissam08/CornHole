@@ -1,0 +1,8 @@
+speech_recognition 
+playsound 
+gTTS 
+os 
+cv2
+random 
+math
+numpy
