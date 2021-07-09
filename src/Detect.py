@@ -16,6 +16,7 @@ def send_request(request):
 			headers = dict(connexion.info())
 			result = connexion.read()
 	except:
+		print("error connexion nabastag")
 		pass
 
 
@@ -50,6 +51,7 @@ class Detection():
 		self.score1W = [] #-- list of bag's first position on board
 		self.score1B = []
 		self.mixer = pygame.mixer
+		self.request = {}
 
 	def starting_game(self):
 		"""Initiate game and chose which team begin"""
@@ -374,23 +376,24 @@ class Detection():
 					# -- several conditions : most present color, and first color must be the same
 					if self.tracker.white > self.tracker.black:
 						self.score_White = self.score_White + 3
-						print("W : {} \t B : {}".format(self.tracker.white, self.tracker.black))
-						print("first color : ",str(self.tracker.first_color))
 						self.tracker.is_detected = False
 						self.switch = 1
+						self.request["3pointwhite"] = True
+						# send_request("3pointwhite")
 					#-- actual color detected can be different, we make sure it's the same
 					elif self.switch == 0:
-						print("Tour : ",str(self.switch))
-						print("Color id : ",str(self.tracker.center_points[id][2]))
 						self.score_White = self.score_White + 3
 						self.switch = 1
-						send_request("ears")
+						self.request["3pointwhite"] = True
+						# send_request("3pointwhite")
 						self.tracker.is_detected = False
 
 					else:	
 						self.score_Black = self.score_Black + 3
 						self.tracker.is_detected = False
 						self.switch = 0
+						self.request["3pointblack"] = True
+						# send_request("3pointblack")
 
 					if not self.Debug:
 						playsound.playsound("sound/Stadefoot1-SF.mp3",True)
@@ -434,12 +437,15 @@ class Detection():
 					# print("self.switch : {}".format(self.switch))
 					if ci == 0 or self.tracker.white > self.tracker.black: # If the bag is white
 						self.score_White = self.score_White + 1
+						self.request["1pointwhite"] = True
 						self.score1W.append(self.tracker.center_points[id])
 						self.switch = 1
 						self.tracker.is_detected = False
 
 					elif self.switch == 0:
 						self.score_White = self.score_White + 1
+						# send_request("1pointwhite")
+						self.request["1pointwhite"] = True
 						self.score1W.append(self.tracker.center_points[id])
 						self.tracker.is_detected = False
 						self.switch = 1
@@ -447,6 +453,7 @@ class Detection():
 					else: # If the score is black
 
 						self.score_Black = self.score_Black + 1
+						self.request["1pointwhite"] = True
 						self.score1B.append(self.tracker.center_points[id])
 						self.tracker.is_detected = False
 						self.switch = 0
@@ -501,8 +508,15 @@ class Detection():
 				# cv2.putText(self.frame, "GOAL !", (0 , round(self.frame.shape[1]/2) ), cv2.FONT_HERSHEY_PLAIN, 6, (0, 0, 255), 10)
 			self.DisplayGoal = self.DisplayGoal - 1
 		
+		if self.DisplayGoal == 3:
+			for request, rep in self.request.items():
+				if rep:
+					send_request(request)
+				for req in self.request.keys():
+					self.request[req] = False
 		if self.DisplayGoal == 5 and not self.Debug:
 			# playsound.playsound("sound/Stadefoot1-SF.mp3",True)
+
 			if self.ask_player("Goal, wanna see it in slow motion?"):
 				self.show_goal()
 
@@ -537,7 +551,7 @@ class Detection():
 
 		# frame = cv2.resize(self.frame, (720,640))
 		cv2.imshow("Frame", self.frame)
-		
+
 		if not self.started: # If we start the game
 			self.update_game()
 			self.starting_game()
@@ -546,7 +560,7 @@ class Detection():
 		if not self.Debug: # If we want to have a winner
 			self.verif_winner(8)
 		
-		key = cv2.waitKey(1)
+		key = cv2.waitKey(30)
 		
 		if key == ord('p'): # If we want to pause the program
 			cv2.waitKey(-1)
