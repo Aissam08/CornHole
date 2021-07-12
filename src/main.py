@@ -38,7 +38,7 @@ def main():
 	cap = cv2.VideoCapture("vid/goal1.mp4")
 	# cap = cv2.VideoCapture(2)
 	cap.set(cv2.CAP_PROP_AUTOFOCUS, 0)
-	D = Detection(cap, Debug = True)
+	D = Detection(cap, Debug = False)
 	D.run()
 	cap.release()
 	cv2.destroyAllWindows()
