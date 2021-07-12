@@ -3,22 +3,6 @@ import time
 import cv2
 from Audio import *
 from random import *
-import urllib.request
-import urllib.parse
-import urllib.error
-
-
-def send_request(request):
-	data = None
-	request = urllib.request.Request("http://192.168.1.57:7899/{}".format(request), method='GET')
-	try:           
-		with urllib.request.urlopen(request, data) as connexion:
-			headers = dict(connexion.info())
-			result = connexion.read()
-	except:
-		print("error connexion nabastag")
-		pass
-
 
 class Detection():
 	"""docstring for Detection"""
@@ -58,18 +42,15 @@ class Detection():
 		self.goal_img = cv2.imread("img/goal-removebg-preview.png")
 		self.goal_img = cv2.resize(self.goal_img, (480,640))
 		self.goal_img[:, :, 0] = 0
-		self.goal_img[:, :, 2] = 0
-		if randint(1,2) == 1:
-			starter = "White"
-			self.switch = 0
-		else:
-			starter = "Black"
-			self.switch = 1
+		self.goal_img[:, :, 1] = 0
 
 		if not self.Debug:
-			phrase = "Starting Corn Hole game, "+starter+" team begin"
-			assistant_speaks(phrase)
-			playsound.playsound("sound/whistle.mp3", True)
+			if randint(1,2) == 1:
+				send_request("blackstart")
+				self.switch = 1
+			else:
+				send_request("whitestart")
+				self.switch = 0
 
 			self.mixer.init()
 			self.mixer.music.load("sound/music.wav")
@@ -83,12 +64,10 @@ class Detection():
 		hole_rounded = np.uint16(np.around(hole))
 		self.hole_coord = hole_rounded[0][0]
 		self.detected_hole = True
-		if self.hole_coord[2] > 40 : 
+		if self.hole_coord[2] > 37 : 
 			self.hole_coord[2] -= 10
-			print('trop grand')
-		elif self.hole_coord[2] < 31:
+		elif self.hole_coord[2] < 28:
 			self.hole_coord[2] += 4
-			print('trop petit')
 
 		x, y ,r = self.hole_coord
 		print("Hole detected: (x = {}, y = {}, r = {})"\
@@ -119,10 +98,8 @@ class Detection():
 	def video_capture(self):
 		ret, self.frame = self.clip.read()
 		self.cpt_frame += 1
-
-
 		
-		self.frame = cv2.rotate(self.frame, cv2.ROTATE_90_CLOCKWISE)
+		self.frame = cv2.rotate(self.frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
 		self.list_frame.append(self.frame)
 
 		try:
@@ -379,13 +356,11 @@ class Detection():
 						self.tracker.is_detected = False
 						self.switch = 1
 						self.request["3pointwhite"] = True
-						# send_request("3pointwhite")
 					#-- actual color detected can be different, we make sure it's the same
 					elif self.switch == 0:
 						self.score_White = self.score_White + 3
 						self.switch = 1
 						self.request["3pointwhite"] = True
-						# send_request("3pointwhite")
 						self.tracker.is_detected = False
 
 					else:	
@@ -393,7 +368,6 @@ class Detection():
 						self.tracker.is_detected = False
 						self.switch = 0
 						self.request["3pointblack"] = True
-						# send_request("3pointblack")
 
 					if not self.Debug:
 						playsound.playsound("sound/Stadefoot1-SF.mp3",True)
@@ -453,7 +427,7 @@ class Detection():
 					else: # If the score is black
 
 						self.score_Black = self.score_Black + 1
-						self.request["1pointwhite"] = True
+						self.request["1pointblack"] = True
 						self.score1B.append(self.tracker.center_points[id])
 						self.tracker.is_detected = False
 						self.switch = 0
@@ -476,49 +450,61 @@ class Detection():
 
 	def verif_winner(self, score):
 		"""End or restart game"""
-		winner = ""
+		winner = False
 
 		#-- First team to reach argument score win
 		if self.score_Black >= score:
-			winner = "Black"
+			send_request("blackwon")
+			text = get_audio()
+			winner = True
 
 		if self.score_White >= score:
-			winner = "White"
-		
-		qst = winner + "team won, do you want to replay ?"
-		if winner != "":
-			if self.ask_player(qst):
+			send_request("whitewon")
+			text = get_audio()
+			winner = True
+
+		if winner :
+			if text == "yes":
+				print("restart game")
 				self.restart_game()
 			else:
-				assistant_speaks("Ending game")
 				playsound.playsound("sound/applause.mp3")
+				send_request("music")
 				print("Ending detection. . .")
 				exit()
 
 	def display_score(self):
 		"""Show score on screen"""
 		if self.DisplayGoal > 0:
-			if self.score_White > 12:
+			if self.score_White > 22:
 				cv2.putText(self.frame, "WHITE TEAM WON!", (0 , round(self.frame.shape[1]/2) ), cv2.FONT_HERSHEY_PLAIN, 3, (255, 255,255), 6)
-			elif self.score_Black > 12:
+			elif self.score_Black > 22:
 				cv2.putText(self.frame, "BLACK TEAM WON!", (0 , round(self.frame.shape[1]/2) ), cv2.FONT_HERSHEY_PLAIN, 3, (0,0,0), 6)
 
 			else:
 				cv2.addWeighted(self.goal_img, 1, self.frame, 0.9 ,0, self.frame)
 				# cv2.putText(self.frame, "GOAL !", (0 , round(self.frame.shape[1]/2) ), cv2.FONT_HERSHEY_PLAIN, 6, (0, 0, 255), 10)
 			self.DisplayGoal = self.DisplayGoal - 1
-		
-		if self.DisplayGoal == 3:
+
+		if self.DisplayGoal == 5:
+			print(self.request)
 			for request, rep in self.request.items():
 				if rep:
 					send_request(request)
-				for req in self.request.keys():
-					self.request[req] = False
-		if self.DisplayGoal == 5 and not self.Debug:
-			# playsound.playsound("sound/Stadefoot1-SF.mp3",True)
+					self.request[request] = False
+				# for req in self.request.keys():
+				# 	self.request[req] = False
 
-			if self.ask_player("Goal, wanna see it in slow motion?"):
-				self.show_goal()
+		if self.count_board == 0:
+			for request, rep in self.request.items():
+				if rep:
+					send_request(request)
+					self.request[request] = False
+
+		if self.DisplayGoal == 2 and not self.Debug:
+			# playsound.playsound("sound/Stadefoot1-SF.mp3",True)
+			# send_request("replay")
+			self.show_goal()
 
 		if self.switch == 1:
 			col = (0,0,0)
@@ -549,7 +535,7 @@ class Detection():
 		cv2.rectangle(self.frame, (x,y) , (x+w, y+h), (0,0,255), 1)
 		cv2.circle(self.frame, (xc,yc), rc, (255,0,0), 1)
 
-		# frame = cv2.resize(self.frame, (720,640))
+		# frame = self.frame[y-50:y+h+50, x-50:x+w+50]
 		cv2.imshow("Frame", self.frame)
 
 		if not self.started: # If we start the game
@@ -557,10 +543,10 @@ class Detection():
 			self.starting_game()
 			self.started = True
 
-		if not self.Debug: # If we want to have a winner
+		if not self.Debug and self.DisplayGoal == 0 or self.count_board == 1: # If we want to have a winner
 			self.verif_winner(8)
 		
-		key = cv2.waitKey(30)
+		key = cv2.waitKey(1)
 		
 		if key == ord('p'): # If we want to pause the program
 			cv2.waitKey(-1)
@@ -575,9 +561,13 @@ class Detection():
 
 	def show_goal(self):
 		"""Display the goal in slow motion"""
+		i = 0
 		for frame in self.list_frame[self.goal_index - 40:self.goal_index]:
+			i += 1
 			cv2.imshow('Ralenti',frame)
-			key = cv2.waitKey(150) 
+			key = cv2.waitKey(150)
+			#if i == 2:
+				#send_request("replay")
 		cv2.destroyAllWindows() 
 
 	def restart_game(self):
