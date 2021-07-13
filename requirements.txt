@@ -1,0 +1,6 @@
+pyaudio
+playsound
+gTTS
+opencv-python
+numpy
+urllib
