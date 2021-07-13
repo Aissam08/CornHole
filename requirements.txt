@@ -3,4 +3,4 @@ playsound
 gTTS
 opencv-python
 numpy
-urllib
+pygame
