@@ -5,7 +5,12 @@ from gtts import gTTS # google text to speech
 import os # to save/open files
 #import wolframalpha # to calculate strings into formula
 from selenium import webdriver # to control browser operations
-  
+import pygame
+import urllib.request
+import urllib.parse
+import urllib.error
+
+
 num = 1
 def assistant_speaks(output):
     global num
@@ -35,7 +40,7 @@ def get_audio():
         print("Speak...")
           
         # recording the audio using speech recognition
-        audio = rObject.listen(source, phrase_time_limit = 2) 
+        audio = rObject.listen(source, phrase_time_limit = 3) 
     #print("Stop.") # limit 5 secs
   
     try:
@@ -46,3 +51,23 @@ def get_audio():
     except:
        # assistant_speaks("Could not understand your audio, PLease try again !")
         return ""
+
+
+
+#-- Connect to nabastag
+def send_request(message):
+    data = None
+    try:
+        request = urllib.request.urlopen("http://192.168.1.57:7899/{}".format(message))
+    except :
+        print("Error connexion nabaztag")
+        pass
+        
+    # try:           
+    #     with urllib.request.urlopen(request, data) as connexion:
+    #         headers = dict(connexion.info())
+    #         result = connexion.read()
+    # except:
+    #     print("Error connexion nabastag")
+    #     pass
+
