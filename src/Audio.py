@@ -56,18 +56,20 @@ def get_audio():
 
 #-- Connect to nabastag
 def send_request(message):
-    data = None
     try:
         request = urllib.request.urlopen("http://192.168.1.57:7899/{}".format(message))
     except :
         print("Error connexion nabaztag")
         pass
-        
-    # try:           
-    #     with urllib.request.urlopen(request, data) as connexion:
-    #         headers = dict(connexion.info())
-    #         result = connexion.read()
-    # except:
-    #     print("Error connexion nabastag")
-    #     pass
 
+#-- Requêtes Nabaztag
+"""
+blackstart
+whitestart
+1pointblack
+1pointwhite
+3pointblack
+3pointwhite
+blackwon
+whitewon
+"""
