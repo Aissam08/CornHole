@@ -35,8 +35,8 @@ def film():
 
 
 def main():
-	# cap = cv2.VideoCapture("vid/goal1.mp4")
-	cap = cv2.VideoCapture(3)
+	cap = cv2.VideoCapture("vid/goal1.mp4")
+	# cap = cv2.VideoCapture(3)
 	cap.set(cv2.CAP_PROP_AUTOFOCUS, 0)
 	D = Detection(cap, Debug = False)
 	D.run()
@@ -46,7 +46,7 @@ def main():
 
 if __name__ == '__main__':
 	try:
-		film()
+		# film()
 		main()
 	except KeyboardInterrupt:
 		pass
