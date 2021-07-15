@@ -1,5 +1,3 @@
-
-
 all: install exec clean
 
 install: requirements.txt

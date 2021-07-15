@@ -13,7 +13,7 @@ This project allows to animate a Corn Hole game by :
  
  ### How to make our project works ?
  
- * Execute Makefile to install libraries
+ * Execute Makefile (only on Linux and Mac) to install libraries
  * Connect a camera over a Corn Hole board
  * The program recognize board and hole position
  * It detect moving and static objects with openCV 
