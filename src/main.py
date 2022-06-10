@@ -19,12 +19,14 @@ def download_video(file):
 
 
 def film():
-	cap = cv2.VideoCapture(3)
+	cap = cv2.VideoCapture(1)
 	cap.set(cv2.CAP_PROP_AUTOFOCUS, 0)
 	while(cap.isOpened()):
 		ret, frame = cap.read()
+		cv2.namedWindow("window", cv2.WND_PROP_FULLSCREEN)
+		cv2.setWindowProperty("window",cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)
 		if ret==True:
-			cv2.imshow('frame',frame)
+			cv2.imshow('window',frame)
 			if cv2.waitKey(1) & 0xFF == 27:
 				break
 		else:
@@ -35,18 +37,24 @@ def film():
 
 
 def main():
-	cap = cv2.VideoCapture("vid/goal1.mp4")
-	# cap = cv2.VideoCapture(3)
-	cap.set(cv2.CAP_PROP_AUTOFOCUS, 0)
-	D = Detection(cap, Debug = False)
-	D.run()
-	cap.release()
-	cv2.destroyAllWindows()
+        if sys.argv[1] == 'video':
+            cap = cv2.VideoCapture("vid/goal1.mp4")
+        elif sys.argv[1] == 'play':
+            cap = cv2.VideoCapture(3)
+        cap.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+        D = Detection(cap, Debug = False)
+        D.run()
+        cap.release()
+        cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':
 	try:
-		# film()
-		main()
+		if sys.argv[1] == 'test':
+			film()
+		else:
+			main()
 	except KeyboardInterrupt:
 		pass
+	except IndexError:
+		print("Argument missing, use : main.py [video / play / test]")

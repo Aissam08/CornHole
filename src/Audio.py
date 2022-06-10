@@ -6,6 +6,7 @@ import os # to save/open files
 #import wolframalpha # to calculate strings into formula
 from selenium import webdriver # to control browser operations
 import pygame
+# import vlc
 import urllib.request
 import urllib.parse
 import urllib.error
@@ -56,11 +57,12 @@ def get_audio():
 
 #-- Connect to nabastag
 def send_request(message):
-    try:
-        request = urllib.request.urlopen("http://192.168.1.57:7899/{}".format(message))
-    except :
-        print("Error connexion nabaztag")
-        pass
+    # try:
+    #     request = urllib.request.urlopen("http://192.168.1.57:7899/{}".format(message))
+    # except :
+    #     print("Error connexion nabaztag")
+    #     pass
+    pass
 
 #-- Requêtes Nabaztag
 """

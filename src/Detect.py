@@ -1,6 +1,7 @@
 from tracker import *
 import time
 import cv2
+import sys
 from Audio import *
 from random import *
 
@@ -40,7 +41,7 @@ class Detection():
 	def starting_game(self):
 		"""Initiate game and chose which team begin"""
 		self.goal_img = cv2.imread("img/goal-removebg-preview.png")
-		self.goal_img = cv2.resize(self.goal_img, (480,640))
+		self.goal_img = cv2.resize(self.goal_img, (640,480))
 		self.goal_img[:, :, 0] = 0
 		self.goal_img[:, :, 1] = 0
 
@@ -99,7 +100,7 @@ class Detection():
 		ret, self.frame = self.clip.read()
 		self.cpt_frame += 1
 		
-		self.frame = cv2.rotate(self.frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+		# self.frame = cv2.rotate(self.frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
 		self.list_frame.append(self.frame)
 
 		try:
@@ -369,8 +370,9 @@ class Detection():
 						self.switch = 0
 						self.request["3pointblack"] = True
 
-					if not self.Debug:
-						playsound.playsound("sound/Stadefoot1-SF.mp3",True)
+					# if not self.Debug:
+					# 	p = vlc.MediaPlayer("sound/Stadefoot1-SF.mp3","r")
+					# 	p.play()
 					self.tracker.white = 0
 					self.tracker.black = 0					
 					self.tracker.goal = False
@@ -468,7 +470,8 @@ class Detection():
 				print("restart game")
 				self.restart_game()
 			else:
-				playsound.playsound("sound/applause.mp3")
+				# p = vlc.MediaPlayer("sound/applause.mp3","r")
+				# p.play()
 				send_request("music")
 				print("Ending detection. . .")
 				exit()
@@ -487,7 +490,7 @@ class Detection():
 			self.DisplayGoal = self.DisplayGoal - 1
 
 		if self.DisplayGoal == 5:
-			print(self.request)
+			# print(self.request)
 			for request, rep in self.request.items():
 				if rep:
 					send_request(request)
@@ -502,7 +505,7 @@ class Detection():
 					self.request[request] = False
 
 		if self.DisplayGoal == 2 and not self.Debug:
-			# playsound.playsound("sound/Stadefoot1-SF.mp3",True)
+			# vlc.MediaPlayer("sound/Stadefoot1-SF.mp3",True)
 			# send_request("replay")
 			self.show_goal()
 
@@ -512,8 +515,8 @@ class Detection():
 			col = (255,255,255)
 
 		#-- Square color show which team has to play
-		cv2.rectangle(self.frame, (round(self.frame.shape[0]/1.55), 10 ),\
-		 (round(self.frame.shape[0]/1.55) + 50 , 60 ), col, -1)
+		cv2.rectangle(self.frame, (round(self.frame.shape[0]+100) , 20 ),\
+			 (round(self.frame.shape[0]+50), 70),col, -1)
 		cv2.putText(self.frame, "Score: ", (0 , round(self.frame.shape[1]*1.1) ), cv2.FONT_HERSHEY_PLAIN, 3, (0, 0, 255), 3 )
 		cv2.putText(self.frame, "White Team: {}".format(self.score_White), (round(self.frame.shape[0]/2.50), \
 			round(self.frame.shape[1]*1.2) ), cv2.FONT_HERSHEY_PLAIN, 1.5, (255, 255, 255), 2 )
@@ -532,11 +535,13 @@ class Detection():
 
 		x,y,w,h = self.board
 		xc, yc,rc = self.hole_coord
-		cv2.rectangle(self.frame, (x,y) , (x+w, y+h), (0,0,255), 1)
-		cv2.circle(self.frame, (xc,yc), rc, (255,0,0), 1)
+		# cv2.rectangle(self.frame, (x,y) , (x+w, y+h), (0,0,255), 1)
+		# cv2.circle(self.frame, (xc,yc), rc, (255,0,0), 1)
 
 		# frame = self.frame[y-50:y+h+50, x-50:x+w+50]
-		cv2.imshow("Frame", self.frame)
+		cv2.namedWindow("frame", cv2.WND_PROP_FULLSCREEN)
+		cv2.setWindowProperty("frame",cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)
+		cv2.imshow("frame", self.frame)
 
 		if not self.started: # If we start the game
 			self.update_game()
@@ -564,6 +569,8 @@ class Detection():
 		i = 0
 		for frame in self.list_frame[self.goal_index - 40:self.goal_index]:
 			i += 1
+			cv2.namedWindow("Ralenti", cv2.WND_PROP_FULLSCREEN)
+			cv2.setWindowProperty("Ralenti",cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)
 			cv2.imshow('Ralenti',frame)
 			key = cv2.waitKey(150)
 			#if i == 2:
